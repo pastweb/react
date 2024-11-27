@@ -1,5 +1,5 @@
 import { RouterOptions as Options, Route as _Route } from '@pastweb/tools';
-import { Component } from '../createReactEntry';
+import { Component } from '../createEntry';
 
 export type ViewComponent = Component;
 

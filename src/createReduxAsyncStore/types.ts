@@ -9,14 +9,16 @@ import {
 import { Reducer } from 'redux';
 import { AsyncStore, AsyncStoreOptions } from '@pastweb/tools';
 import { TypedUseSelectorHook } from 'react-redux';
-import { Middlewares } from '@reduxjs/toolkit/dist/configureStore';
+import { Middleware } from 'redux';
+
+type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>;
 
 export interface ReduxStoreOptions {
   onInit?: (store: Store) => Promise<void> | void;
   settings: ConfigureStoreOptions<any, UnknownAction, Tuple<Middlewares<any>>, Tuple<any>>;
 };
 
-export type ReduxStore = AsyncStore<AsyncStoreOptions & ReduxStoreOptions> & {
+export type ReduxAsyncStore = AsyncStore<AsyncStoreOptions & ReduxStoreOptions> & {
   store: Store & {
     asyncReducers: {
       [reducerName: string]: Reducer;
@@ -30,7 +32,7 @@ export type ReduxStore = AsyncStore<AsyncStoreOptions & ReduxStoreOptions> & {
 };
 
 export interface ReduxProviderProps {
-  reduxStore: ReduxStore;
+  reduxStore: ReduxAsyncStore;
   fallback?: ReactElement;
   children: ReactNode;
 };

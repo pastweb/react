@@ -2,6 +2,23 @@ import { useState, useEffect, ReactNode } from 'react';
 import { ViewRouter, SelectedRoute } from '@pastweb/tools';
 import { routerContext, routeContext, routeDepthContext } from '../constants';
 
+/**
+ * The `RouterProvider` component serves as a context provider for routing in the application.
+ * It manages and provides the current route, route depth, and router instance to its descendants.
+ *
+ * @param props - The props for the `RouterProvider` component.
+ * @param props.router - The `ViewRouter` instance that controls the application's routing.
+ * @param props.base - (Optional) The base path for the router. If provided, it sets the base path for routing.
+ * @param props.children - The child elements that will have access to the routing context.
+ *
+ * @returns A React element that wraps the application with routing context providers.
+ *
+ * @example
+ * // Example usage:
+ * <RouterProvider router={myRouter} base="/app">
+ *   <App />
+ * </RouterProvider>
+ */
 export function RouterProvider(props: { router: ViewRouter, base?: string; children: ReactNode;}) {
   const { router, base } = props;
   const [currentRoute, setCurrentRoute] = useState<SelectedRoute>(router.currentRoute);

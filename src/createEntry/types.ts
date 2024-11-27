@@ -11,8 +11,13 @@ export type ReactEntryOptions = EntryOptions & {
   fallback?: WaitForProps['fallback'];
 };
 
+export interface MountOptions {
+  hydrate?: boolean;
+  isStatic?: boolean;
+};
+
 export type ReactEntry = Omit <Entry<ReactEntryOptions>, 'mount'| 'update' | 'unmount'> & {
-  mount: (hydrate?: boolean, isStatic?: boolean) => void;
+  mount: (options: MountOptions) => string | void;
   hydrate: () => void;
   render: (isStatic?: boolean) => string;
   update: (value: Record<string, any>) => void;

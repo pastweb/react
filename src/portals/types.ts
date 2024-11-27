@@ -1,12 +1,12 @@
 import { ReactElement } from 'react';
-import { Portal as P, PortalTools } from '@pastweb/tools';
-import { ReactEntry } from '../createReactEntry';
+import { Portal as P, PortalHandler } from '@pastweb/tools';
+import { ReactEntry } from '../createEntry';
 
 export type Portal = Omit<P, 'open'> & {
   open: (component: ReactElement | null, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>) => string | false;
 };
 
-export declare function portalFunction(component: ReactElement | null, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>,): PortalTools
+export declare function portalFunction(component: ReactElement | null, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>,): PortalHandler
 export declare namespace portalFunction {
   const open: (component: ReactElement | null, props?: Record<string, any> | (() => Record<string, any>) | undefined, defaults?: Record<string, any> | undefined) => string | false;
   const update: (entryId: string, props: Record<string, any>) => boolean;

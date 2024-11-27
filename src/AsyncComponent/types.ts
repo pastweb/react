@@ -1,5 +1,5 @@
 import { ReactElement } from 'react';
-import { Component } from '../createReactEntry';
+import { Component } from '../createEntry';
 
 export interface DependencyInfo {
   exportName?: string;

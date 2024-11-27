@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig",
   "compilerOptions": {
-    "types": ["jest"]
+    "types": ["jest", "@testing-library/jest-dom"]
   },
   "include": ["src/**/*", "__tests__/**/*"],
 }

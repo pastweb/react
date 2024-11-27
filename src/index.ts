@@ -1,11 +1,11 @@
 export { AsyncComponent, normalizeDependency } from './AsyncComponent';
 export type { AsyncComponentProps, Dependency, DependencyInfo, ComponentModule } from './AsyncComponent';
 
-export { createReactEntry } from './createReactEntry';
-export type { ReactEntry, ReactEntryOptions, Component } from './createReactEntry';
+export { createEntry, createServerEntry } from './createEntry';
+export type { ReactEntry, ReactEntryOptions, Component, MountOptions } from './createEntry';
 
-export { createReduxStore, ReduxProvider } from './createReduxStore';
-export type { ReduxStore, ReduxStoreOptions } from './createReduxStore';
+export { createReduxAsyncStore, ReduxProvider } from './createReduxAsyncStore';
+export type { ReduxAsyncStore, ReduxStoreOptions } from './createReduxAsyncStore';
 
 export { EntryAdapter } from './EntryAdapter';
 export type { EntryAdapterProps } from './EntryAdapter';

@@ -1,10 +1,10 @@
 import { ReactElement } from 'react';
-import { PortalTools } from '@pastweb/tools';
+import { PortalHandler } from '@pastweb/tools';
 import { Portal } from '../types';
 
 export interface PortalProps {
   path: string;
-  tools: PortalTools;
+  use: PortalHandler;
   children: ReactElement;
 };
 
