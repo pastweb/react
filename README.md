@@ -286,6 +286,7 @@ The `ViewRouter` use [path-to-regexp](https://github.com/pillarjs/path-to-regexp
 functionalities implemented in other router UI Frameworks like [react-router](https://reactrouter.com/en/main).
 The goal of this implementation is to obtain a consistant set of API and terminology cross framework.
 You can get more information about `ViewRouter` [here](https://github.com/pastweb/tools/tree/master?tab=readme-ov-file#createviewrouter).
+
 ---
 ### `router setup`
 
