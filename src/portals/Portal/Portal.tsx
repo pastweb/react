@@ -52,7 +52,7 @@ export function Portal(props: PortalProps) {
 
       effect(
         _use.current as PortalHandler,
-        ({ newValues }) => {
+        (newValues) => {
           use.id = newValues.id as string | false;
         },
         "id"
