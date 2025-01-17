@@ -30,8 +30,8 @@ export const useMediator = <T extends Mediator>(
 ): Omit<T, 'state' | 'props' | 'extras'> & { props: T['props'], state: T['state'], extras: T['extras'] } => {
   const isInit = useRef(true);
   const { children, ...restProps } = props;
-  const storedProps = useRef<T['props']>(restProps);
-  const storedExtras = useRef<T['extras']>(extras);
+  const storedProps = useRef<T['props']>({ ...restProps });
+  const storedExtras = useRef<T['extras']>({ ... extras });
 
   if (!isInit.current) {
     update(storedProps.current, restProps);
@@ -39,20 +39,18 @@ export const useMediator = <T extends Mediator>(
   }
 
   const updateState = useRef<(state: T['state']) => void>(noop);
-  const md = useRef<any>();
-  const onStateChange = useRef(() => updateState.current({ ...md.current.state || {} }));
+  const md = useRef<Mediator>(mediator(storedProps.current, storedExtras.current));
+  const onStateChange = useRef((state: T['state']) => updateState.current({ ...state || {}, ...md.current.state || {} }));
 
   if (isInit.current) {
-    md.current = mediator(storedProps.current, storedExtras.current);
-
     if (md.current.state) {
       effect(md.current.state, onStateChange.current);
     }
 
     isInit.current = false;
   }
-
-  const [state, setState] = useState<T['state']>(md.current.state || {});
+  
+  const [state, setState] = useState<T['state']>({ ...md.current.state  || {}});
   
   updateState.current = setState;
 
