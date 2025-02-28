@@ -4,7 +4,7 @@ Set of tools for react web application development.
 For a better documentation clarity, the following code examples will consider a project diredtory structure as below:
 
 
-```
+```md
 .
 |-- src
 |   |-- App
@@ -73,6 +73,7 @@ Also there will be a set of custom `hooks` with a specific lifecile name in orde
   - [useMediator](#usemediator)
   - [useMounted](#usemounted)
 - [Utility](#utility)
+  - [renderContrent](#rendercontent)
   - [setRef](#setref)
 
 ---
@@ -1184,6 +1185,21 @@ function ExampleComponent() {
 ---
 
 ## Utility
+
+### `renderContent`
+
+The `renderContent` function just avauate the `content` parameter to be returned in the correct way for the rendering.
+
+> #### Syntax
+```ts
+type Content = string | number | ReactElement | Component;
+
+function renderContent(content: Contrent, props: Record<string, any> = {}): Content
+```
+
+The `props` argument is optional and is applied just in case the content is a `ReactElement` or a react `Component`.
+
+---
 
 ### `setRef`
 
