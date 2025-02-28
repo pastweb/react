@@ -51,6 +51,9 @@ export {
   usePortals,
 } from './portals';
 
+export { renderContent } from './renderContent';
+export type { Content } from './renderContent';
+
 export type {
   PortalFunction,
   PortalProps,
