@@ -42,6 +42,7 @@ Also there will be a set of custom `hooks` with a specific lifecile name in orde
     - [normalizeDependency](#normalizedependency)
   - [createReduxAsyncStore](#createreduxasyncstore)
     - [ReduxProvider](#reduxprovider)
+  - [createUseColorScheme](#createusecolorscheme)
 - [Browser](#browser)
   - [ViewRouter](#viewrouter)
     - [router setup](#router-setup)
@@ -277,6 +278,40 @@ Props
   * The React elements (usually components) to be rendered inside the Redux `Provider` once the store is ready.
 * `fallback`: `React.ReactElement` _(optional)_
   * An optional React element to be displayed as a fallback UI while the Redux store is initializing.
+---
+
+# `createUseColorScheme`
+
+Creates a React hook for managing and tracking color scheme changes.
+
+This function returns a custom hook that provides the current color scheme and a function to update the color mode. It listens for changes in the system's preferred color scheme and user-selected mode.
+
+## Parameters
+
+- **`matchScheme`** (`MatchScheme`)  
+  An instance of `MatchScheme` responsible for managing color scheme detection.
+
+## Returns
+
+A React hook that returns a tuple containing:
+- **`ColorSchemeInfo`**  
+  The current color scheme information.
+- **`(mode: string) => void`**  
+  A function to update the color mode.
+
+## Example
+
+```ts
+import { createMatchScheme } from '@pastweb/tools';
+import { createUseColorScheme } from '@pastweb/react';
+
+const matchScheme = createMatchScheme();
+const useColorScheme = createUseColorScheme(matchScheme);
+const [info, setMode] = useColorScheme();
+
+console.log(info.selected); // Outputs the currently selected color scheme
+setMode('dark'); // Updates the mode to 'dark'
+```
 ---
 
 ## Browser

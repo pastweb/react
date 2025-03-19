@@ -7,6 +7,8 @@ export type { ReactEntry, ReactEntryOptions, Component, MountOptions } from './c
 export { createReduxAsyncStore, ReduxProvider } from './createReduxAsyncStore';
 export type { ReduxAsyncStore, ReduxStoreOptions } from './createReduxAsyncStore';
 
+export { createUseColorScheme } from './createUseColorScheme';
+
 export { EntryAdapter } from './EntryAdapter';
 export type { EntryAdapterProps } from './EntryAdapter';
 
