@@ -1,4 +1,4 @@
-import { MutableRefObject } from 'react';
+import { MutableRefObject, ForwardedRef } from 'react';
 import { isObject } from '@pastweb/tools';
 
 /**
@@ -17,10 +17,10 @@ import { isObject } from '@pastweb/tools';
  * // Using with a callback ref:
  * setRef((ref) => { console.log(ref); }, someValue);
  */
-export function setRef<T>(ref: MutableRefObject<T> | ((ref: T) => void), value: any): void {
+export function setRef<T>(ref: ForwardedRef<T> | MutableRefObject<T> | ((ref: T) => void), value: any): void {
   if (typeof ref === 'function') {
     ref(value);
-  } else if (isObject(ref) && Object.hasOwn(ref, 'current')) {
+  } else if (isObject(ref) && Object.hasOwn(ref as MutableRefObject<T>, 'current')) {
     (ref as MutableRefObject<T>).current = value;
   }
 }
