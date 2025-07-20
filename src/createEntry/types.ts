@@ -17,7 +17,7 @@ export interface MountOptions {
 };
 
 export type ReactEntry = Omit <Entry<ReactEntryOptions>, 'mount'| 'update' | 'unmount'> & {
-  mount: (options: MountOptions) => string | void;
+  mount: (options?: MountOptions) => string | void;
   hydrate: () => void;
   render: (isStatic?: boolean) => string;
   update: (value: Record<string, any>) => void;

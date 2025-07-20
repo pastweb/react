@@ -2,7 +2,7 @@ import { useState, useRef, cloneElement, ReactElement, isValidElement, createEle
 import { Component } from '../createEntry';
 import { useBeforeMount } from '../useBeforeMount';
 import { loadDependency, normalizeDependency } from './util';
-import { AsyncComponentProps, Dependency, DependencyInfo } from './types';
+import type { AsyncComponentProps, Dependency, DependencyInfo } from './types';
 
 /**
  * A React component that asynchronously loads and renders another component based on the provided `component` prop.

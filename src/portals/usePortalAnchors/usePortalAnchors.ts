@@ -1,6 +1,6 @@
 import { useContext } from '../../util';
 import { portalAnchorsContext } from '../constants';
-import { PortalAnchorsIds } from '@pastweb/tools';
+import type { PortalAnchorsIds } from '@pastweb/tools';
 
 /**
  * Custom hook that provides access to the portal anchors context, which manages the IDs of portal anchors within the application.

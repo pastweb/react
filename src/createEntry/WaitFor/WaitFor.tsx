@@ -1,7 +1,7 @@
-import { useState, Fragment, cloneElement, ReactElement } from 'react';
+import { useState, Fragment, cloneElement, type ReactElement } from 'react';
 import { normalizeAsyncQueue } from '@pastweb/tools';
 import { useMounted } from '../../useMounted';
-import { WaitForProps } from './types';
+import type { WaitForProps } from './types';
 
 export function WaitFor(props: WaitForProps) {
   const { wait, fallback: Fallback = Fragment, children } = props;

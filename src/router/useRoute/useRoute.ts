@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { SelectedRoute, routeDive } from '@pastweb/tools';
+import { type SelectedRoute, routeDive } from '@pastweb/tools';
 import { useRouter } from '../useRouter';
 import { useRouteDepth } from '../useRouteDepth';
 import { useContext } from '../../util';
 import { routeContext } from '../constants';
-import { Route } from '../types';
+import type { Route } from '../types';
 
 /**
  * Custom hook that provides the currently active route at the specified depth in the route hierarchy.

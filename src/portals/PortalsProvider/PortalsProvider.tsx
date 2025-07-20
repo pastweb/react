@@ -1,7 +1,7 @@
 
 import { anchorsSetup, DEFAULT_ID_CACHE, DEFAULT_PORTALS_CACHE } from '@pastweb/tools';
 import { portalsContext, portalAnchorsContext } from '../constants';
-import { PortalsProviderProps } from './types';
+import type { PortalsProviderProps } from './types';
 
 /**
  * The `PortalsProvider` component sets up and provides the portals context and portal anchors context for the application.

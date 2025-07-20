@@ -1,5 +1,5 @@
 import { isObject, noop } from '@pastweb/tools';
-import { Dependency, DependencyInfo } from './types';
+import type { Dependency, DependencyInfo } from './types';
 
 /**
  * Normalizes a dependency into a consistent `DependencyInfo` structure.

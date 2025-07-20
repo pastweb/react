@@ -1,4 +1,4 @@
-import { EventCallback } from '@pastweb/tools';
+import type { EventCallback } from '@pastweb/tools';
 
 export interface UpdateEntryProps {
   on: (event: string, eventCallback: EventCallback) => void;

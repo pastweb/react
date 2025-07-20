@@ -1,6 +1,6 @@
 import { cloneElement, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
-import { ReduxProviderProps } from './types';
+import type { ReduxProviderProps } from './types';
 
 /**
  * The `ReduxProvider` component wraps its children with the Redux `Provider` component,

@@ -1,9 +1,9 @@
-import { cloneElement, isValidElement, Fragment } from "react";
-import { createRoot, hydrateRoot, Root } from "react-dom/client";
-import { createEntry as _createEntry } from "@pastweb/tools";
-import { UpdateEntry } from "./UpdateEntry";
-import { WaitFor } from "./WaitFor";
-import { ReactEntry, ReactEntryOptions } from "./types";
+import { cloneElement, isValidElement, Fragment } from 'react';
+import { createRoot, hydrateRoot, type Root } from 'react-dom/client';
+import { createEntry as _createEntry } from '@pastweb/tools';
+import { UpdateEntry } from './UpdateEntry';
+import { WaitFor } from './WaitFor';
+import type { ReactEntry, ReactEntryOptions } from './types';
 
 function getRenderComponent(entry: ReactEntry) {
   const {

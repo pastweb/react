@@ -1,6 +1,6 @@
-import { ReactElement } from 'react';
-import { PortalHandler } from '@pastweb/tools';
-import { Portal } from '../types';
+import type { ReactElement } from 'react';
+import type { PortalHandler } from '@pastweb/tools';
+import type { Portal } from '../types';
 
 export interface PortalProps {
   path: string;

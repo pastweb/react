@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/react",
-  "version": "1.18.4",
+  "version": "1.18.7",
   "description": "Set of tools for react web application development",
   "author": "Domenico Pasto",
   "license": "MIT",
@@ -17,20 +17,20 @@
     "react"
   ],
   "sideEffects": false,
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "main": "./dist/modules/index.cjs",
+  "module": "./dist/modules/index.mjs",
   "types": "./dist/types/index.d.ts",
   "files": [
-    "/dist",
+    "./dist",
     "README.md"
   ],
   "scripts": {
-    "build": "rimraf dist && tsc --emitDeclarationOnly --skipLibCheck && bun ../maia/packages/maia-cli/src/cli/cli.ts build",
+    "build": "bun ../cli/src/cli/cli.ts build",
     "test": "jest --passWithNoTests",
     "test-coverage": "jest --coverage"
   },
   "peerDependencies": {
-    "@pastweb/tools": "^1.18.4",
+    "@pastweb/tools": "^1.18.6",
     "@reduxjs/toolkit": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -45,7 +45,7 @@
     }
   },
   "devDependencies": {
-    "@pastweb/tools": "^1.18.4",
+    "@pastweb/tools": "^1.18.6",
     "@reduxjs/toolkit": "^2.2.7",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.0",
@@ -60,17 +60,21 @@
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.2",
     "redux": "^5.0.1",
-    "rimraf": "^6.0.1",
     "ts-jest": "^29.2.4",
     "ts-node": "^10.9.2",
     "tslib": "^2.3.1",
     "typescript": "^4.8.3"
   },
   "exports": {
+    ".": {
+      "import": "./dist/modules/index.mjs",
+      "require": "./dist/modules/index.cjs",
+      "types": "./dist/types/index.d.ts"
+    },
     "./AsyncComponent": {
       "import": "./dist/modules/AsyncComponent/AsyncComponent.mjs",
       "require": "./dist/modules/AsyncComponent/AsyncComponent.cjs",
-      "types": "./dist/types/AsyncComponent/AsyncComponent.d.ts"
+      "types": "./dist/types/AsyncComponent/index.d.ts"
     },
     "./AsyncComponent/util": {
       "import": "./dist/modules/AsyncComponent/util.mjs",
@@ -80,57 +84,52 @@
     "./EntryAdapter": {
       "import": "./dist/modules/EntryAdapter/EntryAdapter.mjs",
       "require": "./dist/modules/EntryAdapter/EntryAdapter.cjs",
-      "types": "./dist/types/EntryAdapter/EntryAdapter.d.ts"
-    },
-    "./createEntry/UpdateEntry": {
-      "import": "./dist/modules/createEntry/UpdateEntry/UpdateEntry.mjs",
-      "require": "./dist/modules/createEntry/UpdateEntry/UpdateEntry.cjs",
-      "types": "./dist/types/createEntry/UpdateEntry/UpdateEntry.d.ts"
-    },
-    "./createEntry/WaitFor": {
-      "import": "./dist/modules/createEntry/WaitFor/WaitFor.mjs",
-      "require": "./dist/modules/createEntry/WaitFor/WaitFor.cjs",
-      "types": "./dist/types/createEntry/WaitFor/WaitFor.d.ts"
+      "types": "./dist/types/EntryAdapter/index.d.ts"
     },
     "./createEntry": {
       "import": "./dist/modules/createEntry/createEntry.mjs",
       "require": "./dist/modules/createEntry/createEntry.cjs",
-      "types": "./dist/types/createEntry/createEntry.d.ts"
+      "types": "./dist/types/createEntry/index.d.ts"
+    },
+    "./createEntry/UpdateEntry": {
+      "import": "./dist/modules/createEntry/UpdateEntry/UpdateEntry.mjs",
+      "require": "./dist/modules/createEntry/UpdateEntry/UpdateEntry.cjs",
+      "types": "./dist/types/createEntry/UpdateEntry/index.d.ts"
+    },
+    "./createEntry/WaitFor": {
+      "import": "./dist/modules/createEntry/WaitFor/WaitFor.mjs",
+      "require": "./dist/modules/createEntry/WaitFor/WaitFor.cjs",
+      "types": "./dist/types/createEntry/WaitFor/index.d.ts"
     },
     "./createEntry/createServerEntry": {
       "import": "./dist/modules/createEntry/createServerEntry.mjs",
       "require": "./dist/modules/createEntry/createServerEntry.cjs",
       "types": "./dist/types/createEntry/createServerEntry.d.ts"
     },
+    "./createReduxAsyncStore": {
+      "import": "./dist/modules/createReduxAsyncStore/index.mjs",
+      "require": "./dist/modules/createReduxAsyncStore/index.cjs",
+      "types": "./dist/types/createReduxAsyncStore/index.d.ts"
+    },
     "./createReduxAsyncStore/ReduxProvider": {
       "import": "./dist/modules/createReduxAsyncStore/ReduxProvider.mjs",
       "require": "./dist/modules/createReduxAsyncStore/ReduxProvider.cjs",
       "types": "./dist/types/createReduxAsyncStore/ReduxProvider.d.ts"
     },
-    "./createReduxAsyncStore": {
-      "import": "./dist/modules/createReduxAsyncStore/createReduxAsyncStore.mjs",
-      "require": "./dist/modules/createReduxAsyncStore/createReduxAsyncStore.cjs",
-      "types": "./dist/types/createReduxAsyncStore/createReduxAsyncStore.d.ts"
-    },
     "./createUseColorScheme": {
       "import": "./dist/modules/createUseColorScheme/createUseColorScheme.mjs",
       "require": "./dist/modules/createUseColorScheme/createUseColorScheme.cjs",
-      "types": "./dist/types/createUseColorScheme/createUseColorScheme.d.ts"
-    },
-    ".": {
-      "import": "./dist/modules/index.mjs",
-      "require": "./dist/modules/index.cjs",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/createUseColorScheme/index.d.ts"
     },
     "./portals/Portal": {
       "import": "./dist/modules/portals/Portal/Portal.mjs",
       "require": "./dist/modules/portals/Portal/Portal.cjs",
-      "types": "./dist/types/portals/Portal/Portal.d.ts"
+      "types": "./dist/types/portals/Portal/index.d.ts"
     },
     "./portals/PortalsProvider": {
       "import": "./dist/modules/portals/PortalsProvider/PortalsProvider.mjs",
       "require": "./dist/modules/portals/PortalsProvider/PortalsProvider.cjs",
-      "types": "./dist/types/portals/PortalsProvider/PortalsProvider.d.ts"
+      "types": "./dist/types/portals/PortalsProvider/index.d.ts"
     },
     "./portals/constants": {
       "import": "./dist/modules/portals/constants.mjs",
@@ -140,37 +139,37 @@
     "./portals/usePortal": {
       "import": "./dist/modules/portals/usePortal/usePortal.mjs",
       "require": "./dist/modules/portals/usePortal/usePortal.cjs",
-      "types": "./dist/types/portals/usePortal/usePortal.d.ts"
+      "types": "./dist/types/portals/usePortal/index.d.ts"
     },
     "./portals/usePortalAnchors": {
       "import": "./dist/modules/portals/usePortalAnchors/usePortalAnchors.mjs",
       "require": "./dist/modules/portals/usePortalAnchors/usePortalAnchors.cjs",
-      "types": "./dist/types/portals/usePortalAnchors/usePortalAnchors.d.ts"
+      "types": "./dist/types/portals/usePortalAnchors/index.d.ts"
     },
     "./portals/usePortals": {
       "import": "./dist/modules/portals/usePortals/usePortals.mjs",
       "require": "./dist/modules/portals/usePortals/usePortals.cjs",
-      "types": "./dist/types/portals/usePortals/usePortals.d.ts"
+      "types": "./dist/types/portals/usePortals/index.d.ts"
     },
     "./renderContent": {
       "import": "./dist/modules/renderContent/renderContent.mjs",
       "require": "./dist/modules/renderContent/renderContent.cjs",
-      "types": "./dist/types/renderContent/renderContent.d.ts"
+      "types": "./dist/types/renderContent/index.d.ts"
     },
     "./router/RouterLink": {
       "import": "./dist/modules/router/RouterLink/RouterLink.mjs",
       "require": "./dist/modules/router/RouterLink/RouterLink.cjs",
-      "types": "./dist/types/router/RouterLink/RouterLink.d.ts"
+      "types": "./dist/types/router/RouterLink/index.d.ts"
     },
     "./router/RouterProvider": {
       "import": "./dist/modules/router/RouterProvider/RouterProvider.mjs",
       "require": "./dist/modules/router/RouterProvider/RouterProvider.cjs",
-      "types": "./dist/types/router/RouterProvider/RouterProvider.d.ts"
+      "types": "./dist/types/router/RouterProvider/index.d.ts"
     },
     "./router/RouterView": {
       "import": "./dist/modules/router/RouterView/RouterView.mjs",
       "require": "./dist/modules/router/RouterView/RouterView.cjs",
-      "types": "./dist/types/router/RouterView/RouterView.d.ts"
+      "types": "./dist/types/router/RouterView/index.d.ts"
     },
     "./router/constants": {
       "import": "./dist/modules/router/constants.mjs",
@@ -180,82 +179,82 @@
     "./router/useLocation": {
       "import": "./dist/modules/router/useLocation/useLocation.mjs",
       "require": "./dist/modules/router/useLocation/useLocation.cjs",
-      "types": "./dist/types/router/useLocation/useLocation.d.ts"
+      "types": "./dist/types/router/useLocation/index.d.ts"
     },
     "./router/useNavigate": {
       "import": "./dist/modules/router/useNavigate/useNavigate.mjs",
       "require": "./dist/modules/router/useNavigate/useNavigate.cjs",
-      "types": "./dist/types/router/useNavigate/useNavigate.d.ts"
+      "types": "./dist/types/router/useNavigate/index.d.ts"
     },
     "./router/usePaths": {
       "import": "./dist/modules/router/usePaths/usePaths.mjs",
       "require": "./dist/modules/router/usePaths/usePaths.cjs",
-      "types": "./dist/types/router/usePaths/usePaths.d.ts"
+      "types": "./dist/types/router/usePaths/index.d.ts"
     },
     "./router/useRoute": {
       "import": "./dist/modules/router/useRoute/useRoute.mjs",
       "require": "./dist/modules/router/useRoute/useRoute.cjs",
-      "types": "./dist/types/router/useRoute/useRoute.d.ts"
+      "types": "./dist/types/router/useRoute/index.d.ts"
     },
     "./router/useRouteDepth": {
       "import": "./dist/modules/router/useRouteDepth/useRouteDepth.mjs",
       "require": "./dist/modules/router/useRouteDepth/useRouteDepth.cjs",
-      "types": "./dist/types/router/useRouteDepth/useRouteDepth.d.ts"
+      "types": "./dist/types/router/useRouteDepth/index.d.ts"
     },
     "./router/useRouter": {
       "import": "./dist/modules/router/useRouter/useRouter.mjs",
       "require": "./dist/modules/router/useRouter/useRouter.cjs",
-      "types": "./dist/types/router/useRouter/useRouter.d.ts"
+      "types": "./dist/types/router/useRouter/index.d.ts"
     },
     "./router/useRouterLink": {
       "import": "./dist/modules/router/useRouterLink/useRouterLink.mjs",
       "require": "./dist/modules/router/useRouterLink/useRouterLink.cjs",
-      "types": "./dist/types/router/useRouterLink/useRouterLink.d.ts"
+      "types": "./dist/types/router/useRouterLink/index.d.ts"
     },
     "./setRef": {
       "import": "./dist/modules/setRef/setRef.mjs",
       "require": "./dist/modules/setRef/setRef.cjs",
-      "types": "./dist/types/setRef/setRef.d.ts"
+      "types": "./dist/types/setRef/index.d.ts"
     },
     "./useBeforeMount": {
       "import": "./dist/modules/useBeforeMount/useBeforeMount.mjs",
       "require": "./dist/modules/useBeforeMount/useBeforeMount.cjs",
-      "types": "./dist/types/useBeforeMount/useBeforeMount.d.ts"
+      "types": "./dist/types/useBeforeMount/index.d.ts"
     },
     "./useBeforeUnmount": {
       "import": "./dist/modules/useBeforeUnmount/useBeforeUnmount.mjs",
       "require": "./dist/modules/useBeforeUnmount/useBeforeUnmount.cjs",
-      "types": "./dist/types/useBeforeUnmount/useBeforeUnmount.d.ts"
+      "types": "./dist/types/useBeforeUnmount/index.d.ts"
     },
     "./useForceUpdate": {
       "import": "./dist/modules/useForceUpdate/useForceUpdate.mjs",
       "require": "./dist/modules/useForceUpdate/useForceUpdate.cjs",
-      "types": "./dist/types/useForceUpdate/useForceUpdate.d.ts"
+      "types": "./dist/types/useForceUpdate/index.d.ts"
     },
     "./useFunction": {
       "import": "./dist/modules/useFunction/useFunction.mjs",
       "require": "./dist/modules/useFunction/useFunction.cjs",
-      "types": "./dist/types/useFunction/useFunction.d.ts"
+      "types": "./dist/types/useFunction/index.d.ts"
     },
     "./useMatchDevice": {
       "import": "./dist/modules/useMatchDevice/useMatchDevice.mjs",
       "require": "./dist/modules/useMatchDevice/useMatchDevice.cjs",
-      "types": "./dist/types/useMatchDevice/useMatchDevice.d.ts"
+      "types": "./dist/types/useMatchDevice/index.d.ts"
     },
     "./useMediator": {
       "import": "./dist/modules/useMediator/useMediator.mjs",
       "require": "./dist/modules/useMediator/useMediator.cjs",
-      "types": "./dist/types/useMediator/useMediator.d.ts"
+      "types": "./dist/types/useMediator/index.d.ts"
     },
     "./useMounted": {
       "import": "./dist/modules/useMounted/useMounted.mjs",
       "require": "./dist/modules/useMounted/useMounted.cjs",
-      "types": "./dist/types/useMounted/useMounted.d.ts"
+      "types": "./dist/types/useMounted/index.d.ts"
     },
     "./util/useContext": {
       "import": "./dist/modules/util/useContext/useContext.mjs",
       "require": "./dist/modules/util/useContext/useContext.cjs",
-      "types": "./dist/types/util/useContext/useContext.d.ts"
+      "types": "./dist/types/util/useContext/index.d.ts"
     }
   }
 }

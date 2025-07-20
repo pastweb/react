@@ -1,6 +1,6 @@
-import { ReactElement } from 'react';
-import { Portal as P, PortalHandler } from '@pastweb/tools';
-import { ReactEntry } from '../createEntry';
+import type { ReactElement } from 'react';
+import type { Portal as P, PortalHandler } from '@pastweb/tools';
+import type { ReactEntry } from '../createEntry';
 
 export type Portal = Omit<P, 'open'> & {
   open: (component: ReactElement | null, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>) => string | false;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Route as _Route, filterRoutes, FilterDescriptor } from '@pastweb/tools';
+import { Route as _Route, filterRoutes, type FilterDescriptor } from '@pastweb/tools';
 import { useRouter } from '../useRouter';
-import { Route } from '../types';
+import type { Route } from '../types';
 
 /**
  * Custom hook that filters and returns the list of routes based on the provided filter criteria.

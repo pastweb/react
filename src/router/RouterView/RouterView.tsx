@@ -1,9 +1,9 @@
-import { routeDive, SelectedRoute } from '@pastweb/tools';
+import { routeDive, type SelectedRoute } from '@pastweb/tools';
 import { useRoute } from '../useRoute';
 import { useRouteDepth } from '../useRouteDepth';
 import { routeDepthContext } from '../constants';
-import { ViewComponent } from '../types';
-import { RouterViewProps } from './types';
+import type { ViewComponent } from '../types';
+import type { RouterViewProps } from './types';
 
 /**
  * The `RouterView` component is responsible for rendering a view component based on the current route

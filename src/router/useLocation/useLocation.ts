@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Location } from '@pastweb/tools';
 import { useRouter } from '../useRouter';
+import type { Location } from '@pastweb/tools';
 
 /**
  * Custom hook that provides the current location object from the router.

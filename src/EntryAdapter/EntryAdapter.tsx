@@ -1,8 +1,8 @@
 import { useRef, useCallback, useEffect } from 'react';
-import { Entry, isSSR } from '@pastweb/tools';
+import { type Entry, isSSR } from '@pastweb/tools';
 import { useBeforeMount } from '../useBeforeMount';
 import { useBeforeUnmount } from '../useBeforeUnmount';
-import { EntryAdapterProps } from './types';
+import type { EntryAdapterProps } from './types';
 
 /**
  * The `EntryAdapter` component serves as a bridge to integrate `Entry` objects with React components.

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { PortalHandler } from '@pastweb/tools';
 import { useBeforeMount } from '../../useBeforeMount';
+import type { PortalHandler } from '@pastweb/tools';
 
 /**
  * Custom hook that provides access to portal tools, which are used for managing and interacting with portals in the application.

@@ -2,7 +2,7 @@ import { Store, Reducer, combineReducers } from 'redux';
 import { UnknownAction, configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { createAsyncStore, noop } from '@pastweb/tools';
-import { ReduxAsyncStore, ReduxStoreOptions } from './types';
+import type { ReduxAsyncStore, ReduxStoreOptions } from './types';
 
 /**
  * Creates and configures an async Redux store with support for async reducers and custom initialization.

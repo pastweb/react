@@ -1,8 +1,8 @@
-import { useRef, cloneElement } from "react";
-import { select, isObject, effect, PortalHandler } from "@pastweb/tools";
-import { useBeforeMount } from "../../useBeforeMount";
-import { usePortals } from "../usePortals";
-import { PortalProps, Portals } from "./types";
+import { useRef, cloneElement } from 'react';
+import { select, isObject, effect, type PortalHandler } from '@pastweb/tools';
+import { useBeforeMount } from '../../useBeforeMount';
+import { usePortals } from '../usePortals';
+import type { PortalProps, Portals } from './types';
 
 /**
  * The `Portal` component integrates with the portal system to render its children into a specific portal location.

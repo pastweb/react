@@ -1,5 +1,5 @@
-import { MutableRefObject, ForwardedRef } from 'react';
 import { isObject } from '@pastweb/tools';
+import type { MutableRefObject, ForwardedRef } from 'react';
 
 /**
  * Utility function that sets the value of a ref, supporting both callback refs and `MutableRefObject`.

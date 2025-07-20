@@ -1,5 +1,5 @@
 import { cloneElement, useState } from 'react';
-import { UpdateEntryProps } from './types';
+import type { UpdateEntryProps } from './types';
 
 export function UpdateEntry({ on, children, ...restProps }: UpdateEntryProps) {
   const [entryProps, setEntryProps] = useState<{ [propName: string]: any }>(restProps);

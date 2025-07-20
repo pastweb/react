@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 export type Mediator<Props extends { children?: ReactElement; } = {}, State extends {} = {}, Extras extends {} = {}> = {
   props?: Props;

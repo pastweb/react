@@ -1,6 +1,6 @@
-import { useState, useEffect, ReactNode } from 'react';
-import { ViewRouter, SelectedRoute } from '@pastweb/tools';
+import { useState, useEffect, type ReactNode } from 'react';
 import { routerContext, routeContext, routeDepthContext } from '../constants';
+import type { ViewRouter, SelectedRoute } from '@pastweb/tools';
 
 /**
  * The `RouterProvider` component serves as a context provider for routing in the application.

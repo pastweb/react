@@ -1,4 +1,5 @@
-import { MatchDevicesResult } from '@pastweb/tools';
+import type { MatchDevicesResult } from '@pastweb/tools';
+
 export type { DevicesConfig, MatchDevicesResult } from '@pastweb/tools';
 
 export type DevicesResult = {

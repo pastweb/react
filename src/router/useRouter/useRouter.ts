@@ -1,6 +1,6 @@
-import { ViewRouter } from '@pastweb/tools';
 import { useContext } from '../../util';
 import { routerContext } from '../constants';
+import type { ViewRouter } from '@pastweb/tools';
 
 /**
  * Custom hook that retrieves the `ViewRouter` instance from the router context.

@@ -1,6 +1,6 @@
-import { PortalsDescriptor } from '@pastweb/tools';
 import { useContext } from '../../util';
 import { portalsContext } from '../constants';
+import type { PortalsDescriptor } from '@pastweb/tools';
 
 /**
  * Custom hook that provides access to the portals context, allowing interaction with the application's portal system.

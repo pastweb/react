@@ -1,6 +1,6 @@
-import { AsyncStore } from '@pastweb/tools';
-import { Component } from '../types';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import type { AsyncStore } from '@pastweb/tools';
+import type { Component } from '../types';
 
 export type Wait = Promise<any> | (() => Promise<any>) | AsyncStore<any>;
 
@@ -11,4 +11,4 @@ export type WaitForProps = {
     AsyncStore<any> |
     (Promise<any> | (() => Promise<any>) | AsyncStore<any>)[];
   children: ReactNode
-}
+};

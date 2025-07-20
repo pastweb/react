@@ -4,9 +4,6 @@ export type { AsyncComponentProps, Dependency, DependencyInfo, ComponentModule }
 export { createEntry, createServerEntry } from './createEntry';
 export type { ReactEntry, ReactEntryOptions, Component, MountOptions } from './createEntry';
 
-export { createReduxAsyncStore, ReduxProvider } from './createReduxAsyncStore';
-export type { ReduxAsyncStore, ReduxStoreOptions } from './createReduxAsyncStore';
-
 export { createUseColorScheme } from './createUseColorScheme';
 
 export { EntryAdapter } from './EntryAdapter';

@@ -1,8 +1,19 @@
 # @pastweb/react
 
 Set of tools for react web application development.
-For a better documentation clarity, the following code examples will consider a project diredtory structure as below:
 
+## Installation
+```bash
+$ npm i -S @pastweb/react
+```
+```bash
+$ pnpm i -S @pastweb/react
+```
+```bash
+$ yarn add -S @pastweb/react
+```
+
+For a better documentation clarity, the following code examples will consider a project diredtory structure as below:
 
 ```md
 .
@@ -216,7 +227,7 @@ $ npm i -S @reduxjs/toolkit
 ```
 ```typescript
 // @/react/redux/index.ts
-import { createReduxAsyncStore } from '@pastweb/react';
+import { createReduxAsyncStore } from '@pastweb/react/createReduxAsyncStore';
 
 export const redux = createReduxAsyncStore({
   settings: {

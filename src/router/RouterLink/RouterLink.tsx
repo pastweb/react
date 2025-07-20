@@ -1,5 +1,6 @@
-import { forwardRef, ReactNode, MouseEvent } from 'react';
+import { forwardRef } from 'react';
 import { useRouterLink } from '../useRouterLink';
+import type { ReactNode, MouseEvent } from 'react';
 
 /**
  * The `RouterLink` component renders a navigational link that integrates with the application's routing system.

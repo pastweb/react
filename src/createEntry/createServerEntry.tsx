@@ -3,7 +3,7 @@ import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { createEntry } from '@pastweb/tools';
 import { UpdateEntry } from './UpdateEntry';
 import { WaitFor } from './WaitFor';
-import { ReactEntry, ReactEntryOptions } from './types';
+import { ReactEntry, type ReactEntryOptions } from './types';
 
 function getRenderComponent(entry: ReactEntry) {
   const { Providers = Fragment, initData, waitFor = [], fallback = Fragment } = entry.options;
@@ -64,7 +64,8 @@ function getRenderComponent(entry: ReactEntry) {
 export function createServerEntry(options: ReactEntryOptions = {}): ReactEntry {
   const entry = createEntry(options) as ReactEntry;
 
-  entry.mount = ({ isStatic = true }): void | string => {
+  entry.mount = (options = {}): void | string => {
+    const { isStatic = true } = options;
     const RenderComponent = getRenderComponent(entry);
 
     const renderString = async () => {
