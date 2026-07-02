@@ -1,29 +1,25 @@
 import { cloneElement, isValidElement, Fragment } from 'react';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
-import { createEntry } from '@pastweb/tools';
-import { UpdateEntry } from './UpdateEntry';
-import { WaitFor } from './WaitFor';
-import { ReactEntry, type ReactEntryOptions } from './types';
+import { normalizeAsyncQueue } from '@pastweb/tools/createAsyncStore/normalizeAsyncQueue';
+import { createEntry } from '@pastweb/tools/createEntry';
+import { Render } from '../Render';
+import type { ReactEntry, ReactEntryOptions } from './types';
 
 function getRenderComponent(entry: ReactEntry) {
-  const { Providers = Fragment, initData, waitFor = [], fallback = Fragment } = entry.options;
+  const { Providers = Fragment, initData = {} } = entry.options;
   const { EntryComponent } = entry;
-  
+
   const RootComponent = (initData: { [propName: string]: any }) => (
     <Providers>
-      <UpdateEntry on={entry.on} { ...initData }>
-        {isValidElement(EntryComponent) ?
-          cloneElement(EntryComponent, initData)
-        : <EntryComponent />
+      {isValidElement(EntryComponent) ?
+        cloneElement(EntryComponent, initData)
+        : <EntryComponent {...initData} />
       }
-      </UpdateEntry>
     </Providers>
   );
 
-  const RenderComponent = () => (
-    <WaitFor wait={waitFor} fallback={fallback}>
-      <RootComponent { ...initData } />
-    </WaitFor>
+  const RenderComponent = () => (  
+    <RootComponent {...initData} />
   );
 
   return RenderComponent;
@@ -52,6 +48,7 @@ function getRenderComponent(entry: ReactEntry) {
  * @example
  * // Example usage:
  * const serverEntry = createServerEntry({
+ *   EntryComponent: MyComponent,
  *   Providers: MyProviders,
  *   initData: { someProp: 'value' },
  *   waitFor: [fetchData()],
@@ -63,20 +60,34 @@ function getRenderComponent(entry: ReactEntry) {
  */
 export function createServerEntry(options: ReactEntryOptions = {}): ReactEntry {
   const entry = createEntry(options) as ReactEntry;
+  const { waitFor = [], fallback = Fragment, EntryComponent } = options;
+  const queue = normalizeAsyncQueue(waitFor);
 
   entry.mount = (options = {}): void | string => {
     const { isStatic = true } = options;
-    const RenderComponent = getRenderComponent(entry);
 
-    const renderString = async () => {
-      if (isStatic) {
-        return renderToStaticMarkup(<RenderComponent />);
+    if (!EntryComponent) throw new Error('EntryComponent is required in createServerEntry options.');
+    
+    const RenderComponent = getRenderComponent(entry);
+    
+    const render = async () => {
+      let hasError = false;
+      
+      try {
+        if (queue.length) await Promise.all(queue);
+      } catch (error) {
+        console.error(error);
+        hasError = true;
       }
-  
-      return renderToString(<RenderComponent />);
+
+      if (isStatic) {
+        return renderToStaticMarkup(hasError ? <Render content={fallback} /> : <RenderComponent />);
+      }
+
+      return renderToString(hasError ? <Render content={fallback} /> : <RenderComponent />);
     };
 
-    entry.memoSSR(renderString);
+    entry.memoSSR(render);
 
     return entry.ssrId as string;
   };

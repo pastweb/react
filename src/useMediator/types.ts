@@ -1,9 +1,20 @@
-import type { ReactElement } from 'react';
+export type {
+  ContextUtils,
+  Mediator,
+  MediatorFunction,
+  Props,
+  Extras,
+} from '@pastweb/tools';
 
-export type Mediator<Props extends { children?: ReactElement; } = {}, State extends {} = {}, Extras extends {} = {}> = {
-  props?: Props;
-  state?: State;
-  extras?: Extras;
-} & object;
-
-export type MediatorFunction = (props: any & object, extras: any & object) => any & object;
+/**
+ * Import metadata shape used to detect development HMR APIs.
+ *
+ * Vite exposes `hot`; Webpack 5 and compatible bundlers such as Rspack expose
+ * `webpackHot` for strict ESM modules.
+ */
+export type HotImportMeta = ImportMeta & {
+  /** Vite HMR API. */
+  hot?: unknown;
+  /** Webpack/Rspack HMR API for strict ESM modules. */
+  webpackHot?: unknown;
+};

@@ -1,26 +1,40 @@
-import { useRef, useState } from 'react';
-import { createMatchDevice } from '@pastweb/tools';
-import { DevicesConfig, MatchDevicesResult, DevicesResult } from './types';
+import { useEffect, useState } from 'react';
+import { createMatchDevice, type MatchDevice } from '@pastweb/tools';
+import { useBeforeMount } from '../useBeforeMount';
+import { useRef } from '../useRef';
+import type { DevicesConfig, MatchDevicesResult, DevicesResult } from './types';
 
 /**
- * Custom hook that manages device matching logic based on a provided configuration.
+ * Tracks device matches with the tools `createMatchDevice` helper.
  *
- * @param config - An object defining the configuration for matching devices. 
- *                 This configuration is used to determine which devices are matched.
+ * @param config - Device match configuration.
  *
- * @returns An object containing the current matched devices and a function to trigger a match manually.
+ * @returns Current device matches and a per-device match listener helper.
  *
  * @example
- * // Example usage:
- * const { devices, onMatch } = useMatchDevice(myDevicesConfig);
- * console.log(devices); // Access the current matched devices
- * onMatch(); // Manually trigger the match logic
+ * ```tsx
+ * const { devices, onMatch } = useMatchDevice({
+ *   phone: { mediaQuery: '(max-width: 640px)' },
+ * });
+ *
+ * useMounted(() => {
+ *   onMatch('phone', matches => console.log(matches));
+ * });
+ * ```
  */
 export const useMatchDevice = (config: DevicesConfig): DevicesResult => {
-  const match = useRef(createMatchDevice(config));
-  const [devices, setDevices] = useState<MatchDevicesResult>(match.current.getDevices());
+  const match = useRef<MatchDevice | null>(null);
 
-  match.current.onChange(devices => setDevices(devices));
+  useBeforeMount(() => {
+    match.value = createMatchDevice(config);
+  });
 
-  return Object.freeze({ devices, onMatch: match.current.onMatch });
+  const matches = match.value as MatchDevice;
+  const [devices, setDevices] = useState<MatchDevicesResult>(matches.getDevices());
+
+  useEffect(() => {
+    matches.onChange(devices => setDevices(devices));
+  }, [matches]);
+
+  return Object.freeze({ devices, onMatch: matches.onMatch });
 }

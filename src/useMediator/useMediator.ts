@@ -1,63 +1,71 @@
-import { useRef, useState } from 'react';
-import { update, noop, effect } from '@pastweb/tools';
-import { Mediator, MediatorFunction } from './types';
+import { useState } from 'react';
+import { createMediatorContextUtils, noop, effect, reactive, update } from '@pastweb/tools';
+import { getContext, setContext } from '../GlobalContext';
+import { useBeforeMount } from '../useBeforeMount';
+import { useRef } from '../useRef';
+import { isHMREnabled, getMediatorSignature } from './utils';
+import type { ContextUtils, Mediator, MediatorFunction, Props, Extras } from './types';
 
 /**
- * Custom hook that manages state and props through a mediator pattern.
+ * Creates and renders a tools mediator inside React.
  *
- * @template T - Type of the mediator, extending from the `Mediator` type.
- * 
- * @param mediator - A function that initializes and returns a mediator object. 
- *                   The mediator typically manages the component's state and other logic.
- * @param props - An object containing component props. Defaults to an empty object.
- * @param extras - An object containing additional data that might be needed by the mediator.
- *                 Defaults to an empty object of type `T['extras']`.
+ * Props and extras are wrapped in tools reactive objects, and mediator state is
+ * bridged into React rendering.
  *
- * @returns A mediator object excluding 'state', 'props', and 'extras', 
- *          but with these properties added back as part of the return type.
+ * @typeParam T - Mediator return type.
+ * @param mediator - Tools mediator factory.
+ * @param props - Reactive mediator props. `children` is ignored.
+ * @param extras - Reactive mediator extras.
+ * @returns Mediator return value with React-rendered state.
  *
  * @example
- * // Example usage:
- * const mediatorResult = useMediator(myMediatorFunction, { prop1: 'value1' }, { extra1: 'value2' });
- * console.log(mediatorResult.state);  // Access the state managed by the mediator
- * console.log(mediatorResult.props);  // Access the props managed by the mediator
- * console.log(mediatorResult.extras); // Access the extras passed to the mediator
+ * ```tsx
+ * const counter = useMediator(createCounterMediator, { initial: 0 });
+ *
+ * return <button onClick={counter.increment}>{counter.state.count}</button>;
+ * ```
  */
-export const useMediator = <T extends Mediator>(
-  mediator: MediatorFunction,
-  props: any & object = {},
-  extras: T['extras'] = {} as T['extras'],
-): Omit<T, 'state' | 'props' | 'extras'> & { props: T['props'], state: T['state'], extras: T['extras'] } => {
-  const isInit = useRef(true);
+export const useMediator = <T>(mediator: MediatorFunction<T>, props: Props = {}, extras: Extras = {}): T => {
   const { children, ...restProps } = props;
-  const storedProps = useRef<T['props']>({ ...restProps });
-  const storedExtras = useRef<T['extras']>({ ... extras });
+  const isInit = useRef(true);
+  const storedMediator = useRef<MediatorFunction<T> | null>(null);
+  const storedMediatorSignature = useRef<string>('');
+  const storedProps = useRef<Props>({});
+  const storedExtras = useRef<Props>({});
+  const m = useRef<Mediator>({});
+  const updateState = useRef<(state: Record<string, any>) => void>(noop);
+  const onStateChange = useRef((state: Record<string, any>) => updateState.value({ ...state || {}, ...m.value.state || {} }));
+  const hmr = isHMREnabled();
 
-  if (!isInit.current) {
-    update(storedProps.current, restProps);
-    update(storedExtras.current, extras);
+  function init() {
+    storedMediator.value = mediator;
+    storedMediatorSignature.value = getMediatorSignature(mediator);
+    storedProps.value = reactive({ ...restProps });
+    storedExtras.value = reactive({ ...extras });
+
+    const ctxUtils: ContextUtils = { getContext, setContext };
+    m.value = createMediatorContextUtils(storedMediator.value, storedProps.value, storedExtras.value, ctxUtils);
+
+    if (m.value.state) effect(onStateChange.value, m.value.state);
   }
 
-  const updateState = useRef<(state: T['state']) => void>(noop);
-  const md = useRef<Mediator>(mediator(storedProps.current, storedExtras.current));
-  const onStateChange = useRef((state: T['state']) => updateState.current({ ...state || {}, ...md.current.state || {} }));
+  useBeforeMount(async () => {
+    init();
+    isInit.value = false;
+  });
 
-  if (isInit.current) {
-    if (md.current.state) {
-      effect(md.current.state, onStateChange.current);
+  if (!isInit.value) {
+    if (hmr && storedMediatorSignature.value !== getMediatorSignature(mediator)) {
+      init();
+      updateState.value({ ...(m.value.state || {}) });
+    } else {
+      update(storedProps.value, restProps);
+      update(storedExtras.value, extras);
     }
-
-    isInit.current = false;
   }
-  
-  const [state, setState] = useState<T['state']>({ ...md.current.state  || {}});
-  
-  updateState.current = setState;
 
-  return {
-    ...md.current,
-    state,
-    props: { ...(md.current as any).props || storedProps.current, children },
-    extras,
-  } as Omit<T, 'state' | 'props' | 'extras'> & { props: T['props'], state: T['state'], extras: T['extras'] };
+  const [state, setState] = useState<Record<string, any>>({ ...m.value.state || {} });
+  updateState.value = setState;
+
+  return { ...m.value, state } as T;
 }

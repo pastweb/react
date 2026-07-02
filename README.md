@@ -1,95 +1,386 @@
 # @pastweb/react
 
-Set of tools for react web application development.
+React integration package for building tools-powered React applications.
+
+It provides React-specific bindings for the framework-agnostic primitives in `@pastweb/tools`: global context providers, API/query hooks, async component rendering, router integration, entry composition, islands, portals, and React utility hooks. Use it as a standalone React utility layer or as part of a larger Pastweb-based stack.
+
+## Features
+
+- **Tools-first architecture** — React components and hooks wrap the core `@pastweb/tools` functionality instead of replacing it.
+- **Reactive Global Context** — `GlobalContext`, installers, `getContext`, and `setContext` bridge the tools global context into React trees.
+- **API/query integration** — React wrappers for query cache access, `useQuery`, `useMutation`, `useQueries`, `useInfiniteQuery`, and reusable query state.
+- **SSR-ready composition** — Entry helpers, `AsyncComponent`, and `Island` support the page-router SSR and partial hydration flow.
+- **Router integration** — React hooks and components for `createViewRouter`.
+- **Portal support** — React providers and hooks for portal descriptors and anchors.
+- **TypeScript-first** — Public APIs include TSDoc and exported types for app-level integration.
 
 ## Installation
+
 ```bash
-$ npm i -S @pastweb/react
-```
-```bash
-$ pnpm i -S @pastweb/react
-```
-```bash
-$ yarn add -S @pastweb/react
+npm i -S @pastweb/react
+# or
+pnpm i -S @pastweb/react
+# or
+yarn add -S @pastweb/react
 ```
 
-For a better documentation clarity, the following code examples will consider a project diredtory structure as below:
+## Documentation Overview
 
-```md
-.
-|-- src
-|   |-- App
-|   |   |-- App.tsx
-|   |   `-- Layout
-|   |       `-- Layout.tsx
-|   |-- lib
-|   |   |-- portals.ts
-|   |   `-- router.ts
-|   |-- react
-|   |   |-- components
-|   |   |-- getEntry
-|   |   |-- portals
-|   |   |-- redux
-|   |   `-- router
-|   `-- Views
-|       |-- index.ts
-|       |-- Views.tsx
-|       `-- Home
-|           `-- Home.tsx
-```
+The documentation is organized into the following major categories. Each section provides syntax notes, practical examples, and integration guidance where useful.
 
-Where the alias `@` inside the import path is intended to point to the `src` directory.
-The reason of this structure is to keep all the Framework indipendent settings in a different code base area (`lib`) in order to be consistant and reusable even for other frameworks.
-Also there will be a set of custom `hooks` with a specific lifecile name in order to be consistant in the code implementation as in the documentation even for other frameworks:
-- [useBeforeMount](#usebeforemount)
-- [useBeforeUnmount](#usebeforeunmount)
-- [useMediator](#usemediator)
-- [useMounted](#usemounted)
+- **Core functions** — `GlobalContext`, installers, and context hooks for sharing tools-powered services in React.
+- **API functions** — Query cache provider, query cache installer, and React wrappers around tools API hooks.
+- **Async functions** — Async component loading, dependency normalization, async Redux store helpers, and color-scheme hooks.
+- **Routing** — React integration for `createViewRouter`.
+- **Browser functions** — Browser-aware hooks such as device matching.
+- **Element functions** — Entry rendering, islands, portals, and UI composition helpers.
+- **Hook functions** — General React lifecycle and mediator hooks.
+- **Utility functions** — Small React utilities such as `Render` and `setRef`.
+
+This project is distributed under the MIT licence.
 
 ## Summary
 
-- [Async](#async)
+- [Core functions](#core-functions)
+  - [GlobalContext](#globalcontext)
+  - [getContext](#getcontext)
+  - [setContext](#setcontext)
+- [API functions](#api-functions)
+  - [ApiQueryProvider](#apiqueryprovider)
+  - [installApiCache](#installapicache)
+  - [reuseQuery](#reusequery)
+  - [reuseMutation](#reusemutation)
+  - [useQuery](#usequery)
+  - [useMutation](#usemutation)
+  - [useQueries](#usequeries)
+  - [useInfiniteQuery](#useinfinitequery)
+- [Async functions](#async-functions)
   - [AsyncComponent](#asynccomponent)
     - [normalizeDependency](#normalizedependency)
   - [createReduxAsyncStore](#createreduxasyncstore)
     - [ReduxProvider](#reduxprovider)
-  - [createUseColorScheme](#createusecolorscheme)
-- [Browser](#browser)
+  - [useColorScheme](#usecolorscheme)
+- [Routing](#routing)
   - [ViewRouter](#viewrouter)
     - [router setup](#router-setup)
+      - [installRouter](#installrouter)
       - [RouterProvider](#routerprovider)
       - [RouterView](#routerview)
-      - [RouterLink](#routerLink)
-    - [useLocation](#useLocation)
+      - [RouterLink](#routerlink)
+    - [useLocation](#uselocation)
     - [useNavigate](#usenavigate)
     - [usePaths](#usepaths)
     - [useRoute](#useroute)
     - [useRouteDepth](#useroutedepth)
     - [useRouter](#userouter)
     - [useRouterLink](#userouterlink)
+    - [useSearchParams](#usesearchparams)
+- [Browser functions](#browser-functions)
   - [useMatchDevice](#usematchdevice)
-- [Element](#element)
+- [Element functions](#element-functions)
   - [createEntry](#createentry)
+  - [EntryAdapter](#entryadapter)
+  - [Island](#island)
   - [portals](#portals)
     - [portals setup](#portals-setup)
-      - [PortalsProvider](#portalsprovider)
-      - [usePortalAnchors](#useportalanchors)
+    - [PortalsProvider](#portalsprovider)
+    - [usePortalAnchors](#useportalanchors)
     - [usePortals](#useportals)
     - [usePortal](#useportal)
-      - [Portal](#portal)
-- [Hooks](#hooks)
+    - [Portal](#portal)
+  - [Slots](#slots)
+    - [useSlots](#useslots)
+    - [Template](#template)
+- [Hook functions](#hook-functions)
   - [useBeforeMount](#usebeforemount)
   - [useBeforeUnmount](#usebeforeunmount)
   - [useForceUpdate](#useforceupdate)
-  - [useFunction](#usefunction)
   - [useMediator](#usemediator)
+  - [createMicroStore](#createmicrostore)
+  - [reuseMicroStore](#reusemicrostore)
   - [useMounted](#usemounted)
-- [Utility](#utility)
-  - [renderContrent](#rendercontent)
+  - [useRef](#useref)
+- [Utility functions](#utility-functions)
+  - [Render](#render)
   - [setRef](#setref)
+  - [withDefaultProps](#withdefaultprops)
 
 ---
-## Async
+## Core functions
+
+### `GlobalContext`
+
+`GlobalContext` provides the reactive global context from `@pastweb/tools` to a React subtree. It can receive installer functions through `use`, and provider-scoped values through `update`.
+
+Use installers for shared app services that should be available to descendants, such as routers, portal caches, or API query caches.
+
+**Example:**
+```tsx
+import { GlobalContext } from '@pastweb/react';
+
+const installSession = () => ({
+  session: {
+    userId: 'user-1',
+  },
+});
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <GlobalContext use={installSession}>
+      {children}
+    </GlobalContext>
+  );
+}
+```
+
+Installers receive the keys already present in the local context. This is useful for defensive installers that need to avoid duplicate setup:
+
+**Example:**
+```tsx
+const installTheme = keys => {
+  if (keys.includes('theme')) return {};
+
+  return {
+    theme: 'dark',
+  };
+};
+```
+
+Nested providers inherit parent values and can add or override values with `update`:
+
+**Example:**
+```tsx
+<GlobalContext update={{ appName: 'Docs' }}>
+  <GlobalContext update={{ routeDepth: 1 }}>
+    <Page />
+  </GlobalContext>
+</GlobalContext>
+```
+
+If an installer returns a key that already exists in the local context, `GlobalContext` throws. This catches accidental double installation early.
+
+### `getContext`
+
+Reads one context key and re-renders when that key changes.
+
+**Example:**
+```tsx
+import { getContext } from '@pastweb/react';
+
+function UserName() {
+  const user = getContext<{ name: string }>('user');
+
+  return <span>{user.name}</span>;
+}
+```
+
+### `setContext`
+
+Writes one value into the active context. Components reading the same key with `getContext` will update.
+
+`setContext` reads React context internally, so call it during a component or custom hook render path.
+
+**Example:**
+```tsx
+import { setContext } from '@pastweb/react';
+
+function StatusWriter({ ready }: { ready: boolean }) {
+  setContext('status', ready ? 'ready' : 'idle');
+
+  return null;
+}
+```
+
+---
+## API functions
+
+The API helpers are React wrappers around the framework-agnostic query/cache primitives from `@pastweb/tools`. The cache and agent still live in `tools`; this package only provides React context access and React render updates for the reactive query states.
+
+### `ApiQueryProvider`
+
+Provides a `QueryCache` to a React subtree without using `GlobalContext`.
+
+**Example:**
+```tsx
+import { createQueryCache } from '@pastweb/tools';
+import { ApiQueryProvider } from '@pastweb/react';
+
+const queryCache = createQueryCache();
+
+<ApiQueryProvider queryCache={queryCache}>
+  <App />
+</ApiQueryProvider>
+```
+
+### `installApiCache`
+
+Installs a `QueryCache` into `GlobalContext`, which can then be read with `useApiQueryCache`.
+
+**Example:**
+```tsx
+import { createQueryCache } from '@pastweb/tools';
+import { GlobalContext, installApiCache } from '@pastweb/react';
+
+const queryCache = createQueryCache();
+
+<GlobalContext use={installApiCache({ queryCache })}>
+  <App />
+</GlobalContext>
+```
+
+### `reuseQuery`
+
+Bridges any tools reactive query-like state into React rendering. The state is created once, and React re-renders when the enumerable fields from the first created state change.
+
+#### Syntax
+
+```ts
+function reuseQuery<TState extends Record<PropertyKey, any>>(
+  createState: () => TState,
+): TState
+```
+
+**Example:**
+```tsx
+import { createApiAgent, createQueryCache } from '@pastweb/tools';
+import { useQuery as createToolsQuery } from '@pastweb/tools';
+import { reuseQuery } from '@pastweb/react';
+
+const queryCache = createQueryCache();
+const agent = createApiAgent({ queryCache });
+
+function useUsers() {
+  return reuseQuery(() => createToolsQuery({
+    fn: () => agent.get('/api/users', { queryKey: ['users'] }),
+  }));
+}
+```
+
+### `reuseMutation`
+
+Alias of `reuseQuery` for mutation-style state. It uses the same implementation, but makes custom mutation hooks easier to read.
+
+#### Syntax
+
+```ts
+function reuseMutation<TState extends Record<PropertyKey, any>>(
+  createState: () => TState,
+): TState
+```
+
+**Example:**
+```tsx
+import { useMutation as createToolsMutation } from '@pastweb/tools';
+import { reuseMutation } from '@pastweb/react';
+
+function useSaveUser() {
+  return reuseMutation(() => createToolsMutation({
+    fn: user => agent.post('/api/users', user),
+  }));
+}
+```
+
+### `useQuery`
+
+React wrapper for `@pastweb/tools` `useQuery`.
+
+#### Syntax
+
+```ts
+function useQuery<T>(config: QueryConfig<T>): QueryInfo<T>
+```
+
+**Example:**
+```tsx
+function Users() {
+  const users = useQuery({
+    fn: () => agent.get('/api/users', { queryKey: ['users'] }),
+  });
+
+  if (users.isLoading) return <span>Loading...</span>;
+  if (users.isError) return <span>Could not load users</span>;
+
+  return (
+    <ul>
+      {(users.data ?? []).map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### `useMutation`
+
+React wrapper for `@pastweb/tools` `useMutation`.
+
+#### Syntax
+
+```ts
+function useMutation<T>(config: MutationConfig<T>): MutationInfo<T>
+```
+
+**Example:**
+```tsx
+const saveUser = useMutation({
+  fn: payload => agent.post('/api/users', payload),
+});
+
+<button disabled={saveUser.isMutating} onClick={() => saveUser.mutate(user)}>
+  Save
+</button>
+```
+
+### `useQueries`
+
+React wrapper for multiple tools queries.
+
+#### Syntax
+
+```ts
+function useQueries<T extends readonly QueryConfig<any>[]>(
+  config: UseQueriesInput<T>,
+): UseQueriesInfo<T>
+```
+
+**Example:**
+```tsx
+const dashboard = useQueries({
+  queries: [
+    { fn: () => agent.get('/api/users', { queryKey: ['users'] }) },
+    { fn: () => agent.get('/api/posts', { queryKey: ['posts'] }) },
+  ],
+});
+```
+
+### `useInfiniteQuery`
+
+React wrapper for paginated tools queries.
+
+#### Syntax
+
+```ts
+function useInfiniteQuery<TPage, TPageParam = unknown>(
+  config: InfiniteQueryConfig<TPage, TPageParam>,
+): InfiniteQueryInfo<TPage, TPageParam>
+```
+
+**Example:**
+```tsx
+const posts = useInfiniteQuery({
+  initialPageParam: 1,
+  fn: page => agent.get(`/api/posts?page=${page}`, {
+    queryKey: ['posts', page],
+  }),
+});
+
+<button disabled={!posts.hasNextPage} onClick={posts.fetchNextPage}>
+  More
+</button>
+```
+
+---
+## Async functions
 
 ### `AsyncComponent`
 
@@ -108,11 +399,13 @@ Props
 Immaging we want to load dynamically a react component and a redux reducer.
 We can extend our `AsyncComponent` as in the example below using the [injectReducer](https://redux.js.org/usage/code-splitting) function.
 
+**Example:**
 ```tsx
 // @/react/components/Async.tsx
 import { useRef } from 'react';
-import { AsyncComponent, normalizeDependency, Dependency, DependencyInfo, ComponentModule } from '@pastweb/react';
+import { AsyncComponent, normalizeDependency } from '@pastweb/react';
 import { injectReducer } from '@/react/redux';
+import type { Dependency, DependencyInfo, ComponentModule } from '@pastweb/react';
 
 export interface ReducerInfo {
   [reducerName: string]: Dependency | DependencyInfo;
@@ -151,6 +444,7 @@ export function Async(props: AsyncProps) {
 
 Then we can use the `Async` component:
 
+**Example:**
 ```tsx
 import { Async } from '@/react/components/Async';
 
@@ -225,6 +519,8 @@ Returns
 ```bash
 $ npm i -S @reduxjs/toolkit
 ```
+
+**Example:**
 ```typescript
 // @/react/redux/index.ts
 import { createReduxAsyncStore } from '@pastweb/react/createReduxAsyncStore';
@@ -252,6 +548,7 @@ export const useDispatch = redux.useDispatch;
 
 Then in your Providers component you can use the `ReduxProvider` for the `asyncReduxStore`:
 
+**Example:**
 ```tsx
 // @/react/getEntry/Providers.tsx
 import type { ReactNode } from 'react'; 
@@ -276,11 +573,6 @@ export default function Providers({ children }: ProvidersProps) {
 The `ReduxProvider` is a React component that ensures your application is wrapped with the Redux `Provider` only when the asynchronous Redux store is fully initialized.
 It provides a convenient way to handle the async setup of a Redux store and offers an optional fallback UI to be displayed while the store is preparing as in the example above.
 
-> #### Syntax
-```typescript
-function ReduxProvider(props: ReduxProviderProps): JSX.Element;
-```
-
 Props
 
 * `reduxStore`: `ReduxStore`
@@ -291,480 +583,395 @@ Props
   * An optional React element to be displayed as a fallback UI while the Redux store is initializing.
 ---
 
-# `createUseColorScheme`
+### `useColorScheme`
 
-Creates a React hook for managing and tracking color scheme changes.
+React hook for managing and tracking color scheme changes.
 
-This function returns a custom hook that provides the current color scheme and a function to update the color mode. It listens for changes in the system's preferred color scheme and user-selected mode.
+This hook mirrors `useColorScheme` from `@pastweb/tools`: pass options to create an internal `MatchScheme`, or pass a pre-created `MatchScheme` as the second argument. It listens for changes in the system's preferred color scheme and user-selected mode, then re-renders the React component.
 
-## Parameters
+#### Syntax
 
-- **`matchScheme`** (`MatchScheme`)  
-  An instance of `MatchScheme` responsible for managing color scheme detection.
+```ts
+function useColorScheme(
+  options?: SchemeOptions,
+  matchScheme?: MatchScheme,
+): [ColorSchemeInfo, (mode: string) => void]
+```
 
-## Returns
+#### Parameters
 
-A React hook that returns a tuple containing:
+- **`options`** (`SchemeOptions`)  
+  Options passed to `createMatchScheme` when `matchScheme` is not provided.
+- **`matchScheme`** (`MatchScheme`, optional)  
+  A pre-created `MatchScheme` instance.
+
+#### Returns
+
+A tuple containing:
 - **`ColorSchemeInfo`**  
   The current color scheme information.
 - **`(mode: string) => void`**  
   A function to update the color mode.
 
-## Example
-
+**Example:**
 ```ts
-import { createMatchScheme } from '@pastweb/tools';
-import { createUseColorScheme } from '@pastweb/react';
+import { useColorScheme } from '@pastweb/react';
 
-const matchScheme = createMatchScheme();
-const useColorScheme = createUseColorScheme(matchScheme);
-const [info, setMode] = useColorScheme();
+const [info, setMode] = useColorScheme({ defaultMode: 'auto' });
 
 console.log(info.selected); // Outputs the currently selected color scheme
 setMode('dark'); // Updates the mode to 'dark'
 ```
 ---
 
-## Browser
+## Routing
 
 ### `ViewRouter`
 
-The `ViewRouter` use [path-to-regexp](https://github.com/pillarjs/path-to-regexp) and [history](https://github.com/browserstate/history.js) libraries covering the most common
-functionalities implemented in other router UI Frameworks like [react-router](https://reactrouter.com/en/main).
-The goal of this implementation is to obtain a consistant set of API and terminology cross framework.
-You can get more information about `ViewRouter` [here](https://github.com/pastweb/tools/tree/master?tab=readme-ov-file#createviewrouter).
+`ViewRouter` comes from `@pastweb/tools`. The React package can install that router with `GlobalContext`, or provide it locally with `RouterProvider`, then expose components/hooks that render route views, links, and reactive router state.
 
 ---
 ### `router setup`
 
-The router setup will be the same regardless the FE framework used.
-The 2 mandatory options are:
-
-* `routes` configuration
-* `RouterView` componet as is use from the router to handle nested routes.
+Create the router with `createViewRouter`, passing the React `RouterView` component as the view renderer. Install the router with `installRouter` and `GlobalContext`.
 
 **Example:**
 ```tsx
 // @/lib/router.ts
-import { createViewRouter, RouterOptions, Route } from '@pastweb/tools';
+import { createViewRouter, type Route } from '@pastweb/tools';
 import { RouterView } from '@pastweb/react';
 import { routes } from '@/views';
 
-const options: RouterOptions = {
+export const router = createViewRouter({
   routes: routes as Route[],
   RouterView,
-  // other options
-};
-
-export const router = createViewRouter(options);
-
+});
 ```
-
----
-### `RouterProvider`
-
-The `RouterProvider` component is a React context provider that manages and provides routing-related data to its child components. It integrates with the `ViewRouter` instance to handle route changes and supplies the current route, router instance, and route depth through React context.
-
-> #### Syntax
-```typescript
-function RouterProvider(props: { router: ViewRouter; base?: string; children: ReactNode }): JSX.Element;
-```
-
-Props
-
-* router: `ViewRouter`
-  * The router instance responsible for managing application routing. This instance should be created and configured outside the component.
-* base: `string` _(Optional)_
-  * The base path for the routing system. If provided, this value sets the base path for all routes handled by the ViewRouter instance.
-* children: `ReactNode`
-  * The child components that will consume the routing context provided by RouterProvider.
 
 **Example:**
 ```tsx
-// @/react/getEntry/Providers.tsx
-import type { ReactNode } from 'react'; 
+// @/AppProviders.tsx
+import type { ReactNode } from 'react';
+import { GlobalContext, installRouter } from '@pastweb/react';
 import { router } from '@/lib/router';
-import { ProvidersProps } from './types';
 
-interface ProvidersProps {
-  children: ReactNode;
+const installRouterContext = installRouter({ router });
+
+export function AppProviders({ children }: { children: ReactNode }) {
+  return (
+    <GlobalContext use={installRouterContext}>
+      {children}
+    </GlobalContext>
+  );
 }
+```
 
-export default function Providers({ children }: ProvidersProps) {
+For a local provider style, use `RouterProvider` directly:
+
+**Example:**
+```tsx
+import type { ReactNode } from 'react';
+import { RouterProvider } from '@pastweb/react';
+import { router } from '@/lib/router';
+
+export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <RouterProvider router={router}>
-      { children }
+      {children}
     </RouterProvider>
   );
 }
 ```
 
 ---
+### `installRouter`
 
+`installRouter` creates a `GlobalContext` installer for the tools router. It stores the router under the tools router context key and initializes route depth to `-1`, so the first `RouterView` renders the root selected route.
+
+**Example:**
+```ts
+import { installRouter } from '@pastweb/react';
+
+const installRouterContext = installRouter({
+  router,
+  base: '/app',
+});
+```
+
+---
+### `RouterProvider`
+
+`RouterProvider` provides a tools `ViewRouter` through dedicated React context. Use it when a subtree needs router hooks/components but you do not want to install the router through `GlobalContext`.
+
+**Example:**
+```tsx
+import { RouterProvider, RouterView } from '@pastweb/react';
+
+<RouterProvider router={router} base="/app">
+  <RouterView />
+</RouterProvider>
+```
+
+---
 ### `RouterView`
 
-The `RouterView` component dynamically renders a view component based on the current route and the route depth. It supports nested routing by managing the route depth context and provides a mechanism to preprocess the selected route before rendering the view.
-
-> #### Syntax
-```typescript
-function RouterView({ name, beforeShow, ...rest }: RouterViewProps): JSX.Element | null;
-```
+`RouterView` renders the selected route view for the current route depth. Nested `RouterView` components increment the depth through the nearest router provider context, while keeping compatibility with `GlobalContext`.
 
 Props
 
-* name: `string` _(Optional)_
- * The name of the view to render from the views object in the selected route. Defaults to 'default'.
-* beforeShow: `(route: SelectedRoute) => SelectedRoute` _(Optional)_
- * A callback function that runs before the view is shown. It receives the selected route and allows for modification of the route (e.g., for conditional logic or preprocessing).
-* rest: `Record<string, any>`  _(Optional)_
- * Additional props that are passed to the rendered view component.
+* name: `string`
+  * Named view to render from `SelectedRoute.views`. Defaults to `default`.
+* beforeShow: `(route: SelectedRoute) => SelectedRoute`
+  * Optional transform before the view is selected.
+* rest: `Record<string, any>`
+  * Extra props forwarded to the selected view component.
 
-#### `Description`
-The `RouterView` component enables dynamic rendering of views in a nested routing setup. It determines the appropriate view to render by diving into the route structure using the `routeDive` function and adjusts the route depth context accordingly.
-
-#### `How It Works`
-1. Route and Depth Management:
-   * The component retrieves the current route using the useRoute hook and calculates the current depth by incrementing the value from useRouteDepth.
-
-2. Route Selection:
-   * The routeDive function is used to traverse the route structure up to the specified depth, ensuring that the correct nested route is selected.
-
-3. Preprocessing with beforeShow:
-   * If the beforeShow prop is provided, it is invoked with the selected route, allowing for any modifications before extracting the view components.
-
-4. View Component Selection:
-   * The appropriate view is determined from the views object in the selected route using the name prop.
-
-5. Rendering and Context Update:
-   * If a matching view is found, it is rendered with the additional props passed to RouterView. The routeDepthContext is updated to reflect the current depth.
-
-
-**Basic Example:**
+**Example:**
 ```tsx
-// @/Views/Views.tsx
 import { RouterView } from '@pastweb/react';
 
 export function Views() {
-  return (
-    <RouterView />
-  );
+  return <RouterView />;
 }
 ```
 
-**Using `beforeShow` for Preprocessing:**
+**Example:**
 ```tsx
-// @/Views/Views.tsx
 import { RouterView } from '@pastweb/react';
 
 export function Views() {
   const beforeShow = (route) => {
-    // Modify the route if necessary
     if (route.meta.requiresAuth && !isLoggedIn()) {
-      return { ...route, views: { main: LoginView } };
+      return { ...route, views: { default: LoginView } };
     }
+
     return route;
   };
 
-  return (
-    <RouterView beforeShow={beforeShow} />
-  );
+  return <RouterView beforeShow={beforeShow} />;
 }
 ```
-
-#### Notes
-1. Default View:
-   * If no name is provided, the RouterView defaults to rendering the default view from the selected route.
-2. Error Handling:
-   * If a view matching the name is not found in the selected route's views object, the component renders null.
-3. Route Depth Context:
-   The routeDepthContext ensures that nested RouterView components correctly manage their depth relative to the root.
-4. Composable with Context:
-   * Use alongside other components that consume the routeContext or routerContext for a fully integrated routing solution.
-
-
-#### Practical Use Cases
-1. Dynamic Component Rendering:
-   * Dynamically load components based on route configuration.
-2. Nested Routing:
-   * Handle complex, multi-level routes with ease.
-3. Custom Route Logic:
-  * Preprocess routes with the beforeShow prop for authentication, redirection, or custom logic.
-4. Flexible Route Configuration:
-   * Support a configurable views structure within routes, enabling modular and reusable routing setups.
-
 
 ---
 ### `RouterLink`
 
-The `RouterLink` component is a custom navigational link designed to work seamlessly with the application's routing system. It enables navigation without triggering a full page reload, supporting features such as route parameters, query parameters, and fragment identifiers.
-
-> #### Syntax
-```typescript
-export const RouterLink: React.ForwardRefExoticComponent<
-  React.PropsWithoutRef<{
-    path: string;
-    params?: Record<string, string | number | boolean | null | undefined>;
-    searchParams?: URLSearchParams;
-    hash?: string;
-    className?: string;
-    preventNavigate?: boolean;
-    children: React.ReactNode;
-  }> & React.RefAttributes<HTMLAnchorElement>
->;
-```
+`RouterLink` renders an anchor whose `href`, active state, and click navigation come from `router.getRouterLink`.
 
 Props
+
 * path: `string`
   * The target path for the link.
-* params: `Record<string, string | number | boolean | null | undefined>` _(Optional)_
-  * An object containing route parameters to be interpolated into the path.
-* searchParams: `URLSearchParams` _(Optional)_
-  * A URLSearchParams object representing query parameters to append to the path.
-* hash: `string` _(Optional)_
-  * A string representing the fragment identifier (e.g., #section) for the link.
-* className: `string` _(Optional)_
-  * A string of classes to apply to the anchor (`<a>`) element.
-* preventNavigate: `boolean` _(Optional)_
-  * A boolean that, if set to true, prevents navigation when the link is clicked. Defaults to false.
-* ref: `React.Ref<HTMLAnchorElement>`_(Optional)_
-  * A React ref that is forwarded to the anchor (`<a>`) element.
+* params: `Record<string, string | number | boolean | null | undefined>`
+  * Optional route parameters interpolated into the path.
+* searchParams: `URLSearchParams`
+  * Optional query parameters.
+* hash: `string`
+  * Optional hash without the leading `#`.
+* className: `string`
+  * Optional anchor class.
+* preventNavigate: `boolean`
+  * Prevents click navigation while keeping the generated `href`.
 * children: `ReactNode`
+  * Anchor content.
 
-The content to be displayed inside the link.
-
-**Basic Link:**
+**Example:**
 ```tsx
-<RouterLink path="/home" className="nav-link">
-  Home
-</RouterLink>
-```
-
-**With Route Parameters:**
-```tsx
-<RouterLink 
-  path="/user/:id" 
-  params={{ id: 123 }} 
-  className="user-link"
+<RouterLink
+  path="/users/:id"
+  params={{ id: 123 }}
+  searchParams={new URLSearchParams({ tab: 'profile' })}
+  hash="details"
 >
-  View User
-</RouterLink>
-```
-**With Query Parameters:**
-```tsx
-const searchParams = new URLSearchParams({ q: 'search term', page: '1' });
-
-<RouterLink 
-  path="/search" 
-  searchParams={searchParams} 
-  hash="results" 
-  className="search-link"
->
-  Search Results
-</RouterLink>
-```
-**Prevent Navigation:**
-```tsx
-<RouterLink 
-  path="/example" 
-  preventNavigate={true}
-  className="inactive-link"
->
-  Inactive Link
+  User profile
 </RouterLink>
 ```
 
 ---
 ### `useLocation`
 
-The `useLocation` hook provides the current location object from the router, updating automatically on route changes.
+`useLocation` returns the current router location and re-renders when it changes.
 
-#### Returns
-* `Location`: An object containing information about the current route, such as the path and query parameters.
+#### Syntax
+
+```ts
+function useLocation(): Location
+```
 
 **Example:**
 ```tsx
 const location = useLocation();
-console.log(`Current path: ${location.pathname}`);
+
+return <span>{location.pathname}</span>;
 ```
 
 ---
 ### `useNavigate`
 
-The `useNavigate` hook provides a function to programmatically navigate within the application.
+`useNavigate` returns the router navigation function.
 
-#### Returns
-* `navigate(path: string, state?: any): void`
-  A function to change routes, optionally passing additional state.
+#### Syntax
 
+```ts
+function useNavigate(): (path: string, state?: any) => Promise<void>
+```
 
 **Example:**
 ```tsx
 const navigate = useNavigate();
-navigate('/dashboard', { from: 'login' });
+
+await navigate('/dashboard', { from: 'login' });
 ```
 
 ---
 ### `usePaths`
 
-The `usePaths` hook filters and returns a list of routes based on specified criteria.
+`usePaths` returns the router paths filtered by the tools `filterRoutes` helper.
 
-#### Parameters
-* filter: `FilterDescriptor` _(optional)_
-An object defining the filter criteria. Defaults to {}, returning all routes.
+#### Syntax
 
-#### Returns
-* `Route[]` An array of routes that match the filter criteria.
+```ts
+function usePaths(filter?: FilterDescriptor): Route[]
+```
 
 **Example:**
 ```tsx
 const adminPaths = usePaths({ role: 'admin' });
-console.log(adminPaths); // Logs routes accessible by an admin
 ```
-
-#### How It Works
-* Retrieves all routes from the router using `useRouter`.
-* Filters the routes using the `filterRoutes` utility.
-* Updates the list dynamically when new routes are added.
 
 ---
 ### `useRoute`
 
-The `useRoute` hook retrieves the currently active route at the specified depth in the routing hierarchy.
+`useRoute` returns the selected route at the current `RouterView` depth.
 
-#### Returns
-* `SelectedRoute` The active route object at the current depth.
+#### Syntax
+
+```ts
+function useRoute(): SelectedRoute
+```
 
 **Example:**
 ```tsx
 const currentRoute = useRoute();
-console.log(`Current route path: ${currentRoute.path}`);
-```
 
-#### How It Works
-1. Retrieves the router instance with useRouter.
-2. Determines the route depth using useRouteDepth.
-3. Initializes the current route using routeDive to get the route at the specified depth.
-4. Dynamically updates the route whenever it changes.
+return <h1>{currentRoute.path}</h1>;
+```
 
 ---
 ### `useRouteDepth`
 
-The `useRouteDepth` hook retrieves the current route depth from the routeDepthContext.
+`useRouteDepth` returns the current router view depth. The installed root value is `-1`.
 
-#### Returns
-* `number` The current route depth.
+#### Syntax
+
+```ts
+function useRouteDepth(): number
+```
 
 **Example:**
 ```tsx
 const depth = useRouteDepth();
-console.log(`Current route depth is: ${depth}`);
 ```
-
-#### How It Works
-* Uses the useContext utility to access the routeDepthContext.
-* Ensures that the hook is used within a valid context provider by throwing an error if the context is missing.
 
 ---
 ### `useRouter`
 
-The `useRouter` hook provides access to the `ViewRouter` instance from the `routerContext`.
+`useRouter` returns the installed tools `ViewRouter`.
 
-#### Returns
-* `ViewRouter` The router instance, offering methods like navigation and route management.
+#### Syntax
+
+```ts
+function useRouter(): ViewRouter
+```
 
 **Example:**
 ```tsx
 const router = useRouter();
-router.navigate('/home'); // Navigate to the '/home' route
-```
 
-#### How It Works
-* Uses the `useContext` utility to fetch the `ViewRouter` instance from the `routerContext`.
-* Ensures proper usage within a valid context provider by throwing an error if the `routerContext` is unavailable.
+await router.navigate('/home');
+```
 
 ---
 ### `useRouterLink`
 
-The `useRouterLink` hook creates a dynamic link object for routing, including path generation, active state detection, and navigation functionality.
+`useRouterLink` returns the descriptor from `router.getRouterLink` and re-renders when the active route changes.
 
-#### Parameters
-* props: `Object` containing the following properties:
-  * path: `string` The target path for the link.
-  * params: `Object` of route parameters. _(Optional)_
-  * searchParams: `URLSearchParams` object for query parameters. _(Optional)_
-  * hash: `string` representing a fragment identifier (e.g., #section). _(Optional)_
+#### Syntax
 
-#### Returns
-An object with the following properties:
-
-* pathname: `string` The computed pathname for the link.
-* isActive: `boolean` Whether the current route matches the link's path.
-* isExactActive: `boolean` Whether the current route exactly matches the link's path.
-* navigate: `function` A function to navigate to the path or an alternative route if specified.
+```ts
+function useRouterLink(props: RouterLinkOptions): RouterLink
+```
 
 **Example:**
 ```tsx
 const link = useRouterLink({
   path: '/about',
-  params: { id: 123 },
-  searchParams: new URLSearchParams('query=test'),
-  hash: 'section',
 });
 
-// In JSX:
-<a href={link.pathname} onClick={link.navigate}>
+<a href={link.pathname} onClick={() => link.navigate()}>
   Go to About
-</a>;
+</a>
 ```
 
-#### How It Works
-1. Link Creation:
-  * Uses router.getRouterLink to generate the link object based on the given path, params, searchParams, and hash.
-2. Route Change Handling:
-  * Listens for route changes to update the link's state dynamically.
-3. Navigation:
-  * The navigate method facilitates programmatic navigation to the specified route.
-
 ---
-### `useMatchDevice`
+### `useSearchParams`
 
-The `useMatchDevice` hook provides device matching functionality based on a given configuration. It tracks the matched devices and allows manual updates.
+`useSearchParams` returns the current `URLSearchParams` and the router setter.
 
-#### Parameters
-* config: An object of type DevicesConfig defining the criteria for matching devices. This configuration determines which devices are considered a match.
+#### Syntax
 
-#### Returns
-An object of type DevicesResult with the following properties:
-
-* devices: The current matched devices as a `MatchDevicesResult` object.
-* onMatch: A function to manually trigger the matching logic.
+```ts
+function useSearchParams(): {
+  params: URLSearchParams;
+  setSearchParams: (searchParams: URLSearchParams) => void;
+}
+```
 
 **Example:**
 ```tsx
-const cvonfig = {
+const { params, setSearchParams } = useSearchParams();
+const next = new URLSearchParams(params);
+
+next.set('page', '2');
+setSearchParams(next);
+```
+
+---
+## Browser functions
+
+### `useMatchDevice`
+
+`useMatchDevice` tracks device matches with the tools `createMatchDevice` helper.
+
+#### Syntax
+
+```ts
+function useMatchDevice(config: DevicesConfig): DevicesResult
+```
+
+**Example:**
+```tsx
+import { useMatchDevice, useMounted } from '@pastweb/react';
+
+const config = {
   phone: { mediaQuery: '(max-width: 320px)' },
   tablet: { mediaQuery: '(max-width: 600px)' },
   desktop: { mediaQuery: '(max-width: 1024px)' },
 };
+
 const { devices, onMatch } = useMatchDevice(config);
 
-console.log(devices); // Logs the current matched devices
-onMatch('phone', (result: boolean: device: string) => console.log(`${device}: ${result}`)); // Manually triggers the matching logic
-```
+useMounted(() => {
+  onMatch('phone', (matches, device) => {
+    console.log(`${device}: ${matches}`);
+  });
+});
 
-#### How It Works
-1. Device Matcher Creation:
-  * Uses createMatchDevice to create a matcher instance based on the provided config.
-2. State Management:
-  * Tracks the current matched devices using useState.
-3. Updates on Change:
-  Subscribes to the matcher's onChange event to update the state whenever the matched devices change.
-4. Manual Trigger:
-  * Exposes onMatch for manually invoking the match logic.
+return devices.phone ? <MobileNav /> : <DesktopNav />;
+```
 
 ---
 
-## Element
+## Element functions
 
 ### `createEntry`
 
@@ -832,157 +1039,189 @@ entry.unmount();
 ```
 
 ---
-### `portals`
+### `EntryAdapter`
 
-React provide already support for [portals](https://react.dev/reference/react-dom/createPortal), the goal of this implementation is to provide a set of functionalities portals related with consistant apis crtoss framework.
+`EntryAdapter` renders an entry inside a React tree. On the client it mounts the `entry` returned by `createEntry`; on the server it can load a separate `ssrEntry` through the SSR async task queue, keeping the server renderer out of the client bundle.
 
----
-### `portals setup`
+If your renderer uses the same entry implementation on client and server, omit `ssrEntry`; `EntryAdapter` will use `entry` during SSR too.
 
-Portals `Entry`s as micro-apps to render the component inside the correct DOM Element called `anchor`.
-You need to setup the anchors using `generateAnchors` function which accept an array of strings representring an Object path `.` dot separated in order to be better organised. 
-
-**Example:**
-```ts
-// @/lib/portals.ts
-import { generateAnchors } from '@pastweb/tools';
-
-export const anchors = generateAnchors([
-  'window',
-  'slider.menu',
-  'slider.view',
-  'toaster',
-]);
-```
-
-The `anchors` Object created is an Object organised as below:
-```js
-{
-  window: '_aslkdaj',
-  slider: {
-    menu: '_sdkdjkp',
-    view: '_ndikalq',
-  },
-  toaster: '_tiubvjs'
-}
-```
-
-These strings are unique in the document and will be used as `id` HTML attribute for the element which will be used for renter the component inside.
-
----
-### `PortalsProvider`
-
-The `PortalsProvider` component establishes and manages contexts for handling portals and portal anchors in a React application. It uses the `portalsContext` and portalAnchorsContext to make portal-related functionality accessible to its descendant components.
-
-Props
-
-* anchors: `{ [key: string]: string }`
-  * A mapping of anchor names to their corresponding DOM identifiers or references.
-  * Purpose: Specifies the target locations (anchors) where portals can be rendered.
-* descriptor: `object` _(Optional)_
-  * Configuration object describing how portals should be managed.
-  * Default: {} (an empty object).
-* getEntry: `(id: string) => any` _(Optional)_
-  * A function to retrieve entries from the portals cache.
-  * Purpose: Provides a mechanism for fetching portal-specific data.
-* idChahe `Map<string, any>` _(Optional)_
-  * The cache for portal IDs, used to store and manage portal instances.
-  * Default: `DEFAULT_ID_CACHE`.
-* portalsCache: `Map<string, any>` _(Optional)_
-  * The cache for portal instances, storing the content or state of active portals.
-  * Default: `DEFAULT_PORTALS_CACHE`.
-* children: `React.ReactNode`
-  * The child elements that will have access to the portals and portal anchors contexts.
+When using Vite, guard the async server import with `import.meta.env.SSR` so the client build can tree-shake the server-only module:
 
 **Example:**
 ```tsx
-// @/react/getEntry/Providers.tsx
-import { ReduxProvider, PortalsProvider, RouterProvider, ReactEntry } from '@pastweb/react';
-import { anchors } from '@/lib/portals';
-import { ProvidersProps } from './types';
+import { createEntry, EntryAdapter } from '@pastweb/react';
+import { ProfileCard } from './ProfileCard';
 
-export default (getEntry: () => ReactEntry) => function Providers({ children }: ProvidersProps) {
+function createProfileEntry() {
+  return createEntry({
+    EntryComponent: ProfileCard,
+  });
+}
+
+export function ProfileSlot(props: { userId: string }) {
   return (
-    <PortalsProvider getEntry={getEntry} anchors={anchors}>
-      { children }
-    </PortalsProvider>
+    <EntryAdapter
+      entry={createProfileEntry}
+      {...(import.meta.env.SSR
+        ? {
+            ssrEntry: () =>
+              import('./profile.server-entry').then(module => module.createProfileServerEntry()),
+          }
+        : {})}
+      userId={props.userId}
+    />
   );
 }
 ```
 
-How you can see t in the example above the `Providers.tsx` exports a function getting the the `getEntry` function as paramenter and returns the `Providers` component. This is because the `PortalsProvider` needs the `getEntry` function to be used the set correctly the `Entry` object in order to be able to render the component.
-It is possioble customise the rendered Component with a comonent wrapper as in the example below:
+`EntryAdapter` also reads the nearest `Island` context. When rendered inside an `Island`, the nested entry hydrates existing server markup; outside an island it mounts normally.
 
-```ts
-// @/react/portals.ts
-import { usePortals as UP, usePortalAnchors as UPA, EntryDescriptor } from '@pastweb/react';
-import { getEntry } from '@/react/getEntry';
-import { Window } from '@/react/components/Window';
-import { PortalAnchorsId } from '@/lib/portals';
+---
+### `Island`
 
-export type Portals = {
-  window: PortalFunction,
-  slider: {
-    menu: PortalFunction,
-    view: PortalFunction,
-  },
-  toaster: PortalFunction,
-};
+`Island` marks a server-rendered subtree that can hydrate with a client strategy such as `load`, `idle`, `visible`, `media`, or `none`.
 
-export const usePortals = (): Portals => UP<Portals>();
-export const usePortalAnchors = (): PortalAnchorsId => UPA<PortalAnchorsId>();
+The component does not accept provider props and does not install API, router, portal, or cache context. When an island needs those providers, extend the component rendered inside the island and include the providers there.
 
-// descriptor definition
-export const descriptor: EntryDescriptor = {
-  window: () => getEntry({ entry: Window }),
-};
+`Island` also provides an internal island context. Nested `EntryAdapter` components read that context and hydrate their entries automatically only when they are rendered inside an island.
+
+**Example:**
+```tsx
+function ProductIsland() {
+  return (
+    <AppProviders>
+      <ProductCard />
+    </AppProviders>
+  );
+}
+
+<Island client="visible" islandId="product-card">
+  <ProductIsland />
+</Island>
 ```
 
-Tghe `EntryDescriptor` object kkeps the same structure of the `anchors` object, but redefine the `getEntry` function for thet pecific portal.
+---
+### `portals`
+
+React already supports [portals](https://react.dev/reference/react-dom/createPortal). These helpers add a small framework wrapper around the `@pastweb/tools` portal primitives so applications can share the same portal model across packages.
+
+---
+### `portals setup`
+
+Portal entries render components into DOM elements called anchors. Create the anchor ids with `generateAnchors`, then either install the portal descriptor with `installPortals` and `GlobalContext`, or provide it locally with `PortalsProvider`.
+
+**Example:**
+```tsx
+// @/lib/portals.ts
+import { Fragment, type ReactNode } from 'react';
+import { generateAnchors } from '@pastweb/tools';
+import { GlobalContext, createEntry, installPortals } from '@pastweb/react';
+
+export const portalAnchors = generateAnchors([
+  'modal',
+  'toast',
+]);
+
+const installPortalContext = installPortals({
+  anchorsIds: portalAnchors,
+  getEntry: (props, component) => createEntry({
+    EntryComponent: component ?? Fragment,
+    initData: props,
+  }),
+});
+
+export function AppProviders({ children }: { children: ReactNode }) {
+  return (
+    <GlobalContext use={installPortalContext}>
+      {children}
+    </GlobalContext>
+  );
+}
+```
+
+The generated ids must be rendered as DOM anchors somewhere in the app shell:
+
+**Example:**
+```tsx
+import { portalAnchors } from '@/lib/portals';
+
+export function PortalAnchors() {
+  return (
+    <>
+      <div id={portalAnchors.modal} />
+      <div id={portalAnchors.toast} />
+    </>
+  );
+}
+```
+
+`getEntry` is the customization point for portal rendering. Wrap the returned entry there when a portal needs providers, layout, or framework-specific mounting behavior.
+
+---
+### `PortalsProvider`
+
+`PortalsProvider` provides portal helpers through dedicated React context. Use it when a subtree needs portals but you do not want to install them through `GlobalContext`.
+
+**Example:**
+```tsx
+import { PortalsProvider } from '@pastweb/react';
+import { portalAnchors } from '@/lib/portals';
+
+<PortalsProvider anchorsIds={portalAnchors} getEntry={getEntry}>
+  <App />
+</PortalsProvider>
+```
 
 ---
 ### `usePortalAnchors`
 
-The `usePortalAnchors` hook provides access to the `portalAnchorsContext`, which manages the identifiers (IDs) of portal anchors in a React application. This hook ensures that components can interact with and utilize the portal anchor IDs efficiently, supporting type safety and customizable context types.
+The `usePortalAnchors` hook reads the installed portal anchor ids.
+
+#### Syntax
+
+```ts
+function usePortalAnchors<T>(): T
+```
 
 **Example:**
-```ts
+```tsx
 import { usePortalAnchors } from '@pastweb/react';
 
-function ExampleComponent() {
-  // Access the portal anchors context with a custom type
-  const portalAnchors = usePortalAnchors<{ mainAnchorId: string }>();
+function PortalTargets() {
+  const anchors = usePortalAnchors<{ modal: string; toast: string }>();
 
-  console.log(`Main anchor ID: ${portalAnchors.mainAnchorId}`);
-
-  return <div>Check the console for the main anchor ID.</div>;
+  return (
+    <>
+      <div id={anchors.modal} />
+      <div id={anchors.toast} />
+    </>
+  );
 }
 ```
 
 ---
 ### `usePortals`
 
-The `usePortals` hook provides access to the `portalsContext`, enabling interaction with the application's portal system. This hook facilitates managing dynamic UI elements such as modals, tooltips, and other overlays.
+The `usePortals` hook reads the installed portal descriptor. Use a local type to keep portal paths typed in application code.
 
-> #### Syntax
-```typescript
+#### Syntax
+
+```ts
 function usePortals<T>(): T
 ```
 
-#### Returns
-The current portals context cast to the specified type T.
-
 **Example:**
-```ts
-import { usePortals } from '@/react/portals';
+```tsx
+import { usePortals, type PortalFunction } from '@pastweb/react';
 
-function ExampleComponent() {
-  // Access the portals context with a custom type
-  const portals = usePortals<{ modal: { open: (content: JSX.Element) => void } }>();
+type AppPortals = {
+  modal: PortalFunction;
+};
 
-  const openModal = () => {
-    portals.modal.open(<div>My Modal Content</div>);
-  };
+function OpenDirectly() {
+  const portals = usePortals<AppPortals>();
+
+  const openModal = () => portals.modal(<Dialog />).open();
 
   return <button onClick={openModal}>Open Modal</button>;
 }
@@ -991,40 +1230,45 @@ function ExampleComponent() {
 ---
 ### `usePortal`
 
-The `usePortal` hook provides access to a `PortalHandler` object, which offers methods and properties for managing and interacting with portals in the application. This utility ensures that the `PortalHandler` object is initialized before the component mounts, allowing consistent access to portal management functionalities and must be used with the `Portal` Component.
+The `usePortal` hook creates the handler consumed by the `Portal` component. The handler exposes `open`, `update`, `close`, and `remove`.
 
-##### Returns
-* PortalHandler:
-  * An object with methods and properties related to portal management, including an id property and an internal identifier `$$portalHandler`.
+Calls made before the `Portal` component finishes wiring itself are replayed once the component is ready.
+
+#### Syntax
+
+```ts
+function usePortal(): PortalHandler & { isReady: () => void }
+```
 
 ---
 ### `Portal`
 
-The `Portal` component integrates seamlessly with a portal management system, enabling the rendering of its children into specific portal locations. It handles the portal lifecycle through a set of tools provided by the `PortalHandler` object, including methods to `open`, `update`, and `close` portals.
+The `Portal` component binds a `usePortal` handler to a portal path. It renders `null` directly; the child element is mounted by the portal entry when the handler opens.
 
 Props
 
-* path:	`string`
-  * The path identifying the target portal where the content should be rendered.
+* path: `string`
+  * Dot-separated path used to select the portal function from the descriptor.
 * use: `PortalHandler`
-  * A `PortalHandler` object used to manage the portal's lifecycle. Must include an id property and a `$$portalHandler` identifier.
-* children:	`ReactNode`
-  * The content to render inside the portal.
-* rest:	`Record<string, any>`
-  * Additional props to be passed to the rendered content inside the portal.
+  * Handler returned by `usePortal`.
+* children: `ReactElement`
+  * Element rendered by the portal entry.
 
 **Example:**
 ```tsx
 import { Portal, usePortal } from '@pastweb/react';
 
-function MyComponent() {
-  const tools = usePortal();
+function ProductModalButton() {
+  const modal = usePortal();
 
   return (
     <>
-      <button onClick={() => tools.open()} />
-      <Portal path='my.portal.path' use={tools}>
-        <div>Content to render in the portal</div>
+      <button onClick={() => modal.open()}>Open details</button>
+      <button onClick={() => modal.update({ variant: 'compact' })}>Compact</button>
+      <button onClick={() => modal.close()}>Close</button>
+
+      <Portal path="modal" use={modal}>
+        <ProductDetails variant="full" />
       </Portal>
     </>
   );
@@ -1032,13 +1276,207 @@ function MyComponent() {
 ```
 ---
 
-## Hooks
+### `Slots`
 
-All the following hooks less `useMediator` are just a rename for consistant reference cross frameworks,
+`Slots` is a boundary component for nested slot-aware components.
+
+When `useSlots` scans children, it treats nested `Slots` boundaries as opaque children and does not collect `Template` elements inside them. This keeps parent and child slot collections independent while preserving the rendered child tree.
+
+#### Parameters
+
+- **`children`** (`ReactNode`)  
+  The nested slot-aware subtree.
+
+#### Returns
+
+The component renders its children unchanged.
+
+**Example:**
+```tsx
+import { Slots, Template, useSlots } from '@pastweb/react';
+
+function Panel({ children }: { children: React.ReactNode }) {
+  const { Slot } = useSlots(children);
+
+  return (
+    <section>
+      <header>
+        <Slot name="title" />
+      </header>
+      <main>
+        <Slot />
+      </main>
+    </section>
+  );
+}
+
+<Panel>
+  <Template name="title">Settings</Template>
+  <Slots>
+    <Template name="title">Nested title</Template>
+  </Slots>
+  <p>Panel body</p>
+</Panel>
+```
+
+#### Nested slots
+
+Wrap a nested slot-aware component with `Slots` when it appears inside another slot-aware component. The wrapper tells the parent collector to leave the child component's templates untouched so the child can collect them itself.
+
+**Example:**
+```tsx
+import { Slots, Template, useSlots } from '@pastweb/react';
+
+function Page({ children }: { children: React.ReactNode }) {
+  const { Slot } = useSlots(children);
+
+  return (
+    <main>
+      <h1>
+        <Slot name="title" />
+      </h1>
+      <Slot />
+    </main>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  const { Slot } = useSlots(children);
+
+  return (
+    <article>
+      <h2>
+        <Slot name="title" />
+      </h2>
+      <div>
+        <Slot />
+      </div>
+      <footer>
+        <Slot name="action" />
+      </footer>
+    </article>
+  );
+}
+
+<Page>
+  <Template name="title">Dashboard</Template>
+
+  <Slots>
+    <Card>
+      <Template name="title">Revenue</Template>
+      <p>Quarterly report</p>
+      <Template name="action">
+        <button>Open report</button>
+      </Template>
+    </Card>
+  </Slots>
+</Page>
+```
+
+---
+### `useSlots`
+
+`useSlots` collects default children and named `Template` children into renderable slots.
+
+The returned `Slot` component renders the default slot when no name is provided, renders fallback children when a named slot is missing, supports prop injection for element/function slot content, and supports custom mapping.
+
+#### Syntax
+
+```ts
+function useSlots(defaultNodes: ReactNode): {
+  Slots: typeof Slots;
+  Slot: (props: SlotProps) => ReactNode;
+}
+```
+
+#### Parameters
+
+- **`defaultNodes`** (`ReactNode`)  
+  Children to scan for default content and `Template` markers.
+
+#### Returns
+
+An object containing:
+
+- **`Slots`** (`FunctionComponent<SlotsProps>`)  
+  Boundary component for nested slot-aware components.
+- **`Slot`** (`FunctionComponent<SlotProps>`)  
+  Renderer for default or named slot content.
+
+**Example:**
+```tsx
+import { Template, useSlots } from '@pastweb/react';
+
+function Toolbar({ children }: { children: React.ReactNode }) {
+  const { Slot } = useSlots(children);
+
+  return (
+    <Slot
+      name="action"
+      props={{ label: 'Save' }}
+      map={(child, index) => (
+        <span key={index} className="toolbar-action">
+          {child}
+        </span>
+      )}
+    />
+  );
+}
+
+<Toolbar>
+  <Template name="action">
+    {({ label }) => <button>{label}</button>}
+  </Template>
+</Toolbar>
+```
+
+---
+### `Template`
+
+`Template` marks content that should be collected by `useSlots`.
+
+Omitting `name` makes the template content part of the default slot. `Template.reduce` and `Template.only` are available for filtering child collections while preserving the same public API.
+
+#### Parameters
+
+- **`name`** (`string`, optional)  
+  Name of the slot to register. Defaults to the default slot.
+- **`children`** (`ReactNode | SlotFunction`, optional)  
+  Static content, React elements, arrays, or a function that receives slot props.
+
+#### Returns
+
+`Template` renders `null`; its content is consumed by `useSlots`.
+
+#### Static methods
+
+- **`Template.reduce(children, fn)`**  
+  Maps children while excluding `Slot` and `Template` marker elements.
+- **`Template.only(children)`**  
+  Returns only `Template` elements from a child collection.
+
+**Example:**
+```tsx
+import { Template, useSlots } from '@pastweb/react';
+
+function ActionPanel({ children }: { children: React.ReactNode }) {
+  const { Slot } = useSlots(children);
+
+  return <Slot name="action" props={{ label: 'Save changes' }} />;
+}
+
+<ActionPanel>
+  <Template name="action">
+    {({ label }) => <button>{label}</button>}
+  </Template>
+</ActionPanel>
+```
+
+## Hook functions
 
 ### `useBeforeMount`
 
-The `useBeforeMount` hook provides a simple way to execute a function exactly once, before the component mounts. This is particularly useful for performing setup logic that needs to occur before the initial render.
+`useBeforeMount` runs a function once during the component's first render. Use it for synchronous setup that must be available before the initial React commit.
 
 > #### Syntax
 ```ts
@@ -1051,7 +1489,7 @@ import { useBeforeMount } from '@pastweb/react';
 
 function ExampleComponent() {
   useBeforeMount(() => {
-    console.log('Component is about to mount!');
+    registry.register('example');
   });
 
   return <div>Hello, world!</div>;
@@ -1061,7 +1499,7 @@ function ExampleComponent() {
 ---
 ### `useBeforeUnmount`
 
-The `useBeforeUnmount` hook provides a simple way to execute a function just before a React component unmounts. This is particularly useful for cleanup operations, such as unsubscribing from services, clearing timers, or resetting global states.
+`useBeforeUnmount` runs the latest callback when the component unmounts.
 
 > #### Syntax
 ```tsx
@@ -1074,7 +1512,7 @@ import { useBeforeUnmount } from '@pastweb/react';
 
 function ExampleComponent() {
   useBeforeUnmount(() => {
-    console.log('Component is about to unmount!');
+    subscription.close();
   });
 
   return <div>Hello, world!</div>;
@@ -1084,11 +1522,11 @@ function ExampleComponent() {
 ---
 ### `useForceUpdate`
 
-The `useForceUpdate` hook allows you to force a React component to re-render by triggering a state update. This is useful in situations where changes do not automatically trigger a re-render, such as when working with external libraries or non-reactive data sources.
+`useForceUpdate` returns a stable function that forces the component to re-render.
 
 > #### Syntax
 ```ts
-export const useForceUpdate = (): () => void;
+function useForceUpdate(): () => void
 ```
 
 **Example:**
@@ -1108,44 +1546,15 @@ function ExampleComponent() {
 ```
 
 ---
-### `useFunction`
-
-The `useFunction` hook is designed to return a stable, memoized reference of a provided function, preventing unnecessary re-creation across renders. This is especially useful when passing functions as dependencies in `useEffect`, `useMemo`, or as props to child components.
-
-> #### Syntax
-```ts
-function useFunction<T extends (...args: any[]) => any>(fn: T): T;
-```
-
-**Example:**
-```tsx
-import { useFunction } from '@pastweb/react';
-
-function ExampleComponent() {
-  const memoizedLog = useFunction((message: string) => {
-    console.log(message);
-  });
-
-  return (
-    <button onClick={() => memoizedLog('Button clicked!')}>
-      Click Me
-    </button>
-  );
-}
-```
-
----
 ### `useMediator`
 
-The `useMediator` hook manages a component's state and props using a mediator pattern, which allows centralized state management and logic control. It provides a flexible way to handle complex state and prop interactions while keeping the component logic organized.
+`useMediator` creates a tools mediator inside React. Props and extras are wrapped in tools reactive objects, and mediator state is bridged into React rendering.
+
+In development, `useMediator` detects Vite (`import.meta.hot`) and Webpack/Rspack-compatible (`import.meta.webpackHot`) HMR. When the mediator factory source changes, the mediator is recreated and its React state snapshot is refreshed, so Fast Refresh does not leave old mediator logic resident until the component remounts. Inline mediators keep their state across ordinary rerenders because the comparison is based on the mediator source signature, not only the function reference.
 
 > #### Syntax
 ```ts
-function useMediator<T extends Mediator>(
-  mediator: MediatorFunction,
-  props: any & object = {},
-  extras: T['extras'] = {} as T['extras'],
-): Omit<T, 'state' | 'props' | 'extras'> & { props: T['props'], state: T['state'], extras: T['extras'] };
+function useMediator<T>(mediator: MediatorFunction<T>, props?: Props, extras?: Extras): T;
 ```
 
 #### Type Parameters
@@ -1173,13 +1582,14 @@ An object that contains:
 **Example:**
 ```tsx
 import { useMediator } from '@pastweb/react';
+import { reactive } from '@pastweb/tools';
 
 function myMediator(props, extras) {
   const { initialCount } = props;
   const { log } = extras;
-  const state = { count: initialCount };
+  const state = reactive({ count: initialCount });
 
-  function incrtement() {
+  function increment() {
     state.count = state.count + 1;
     if (log) console.log('count:', state.count);
   }
@@ -1188,7 +1598,7 @@ function myMediator(props, extras) {
     state,
     props,
     extras,
-    incrtement,
+    increment,
   };
 }
 
@@ -1208,11 +1618,11 @@ function Counter() {
 ---
 ### `useMounted`
 
-The `useMounted` hook is a simple, yet powerful hook that executes a provided effect function only once, when the component mounts. It is particularly useful for performing setup logic or starting side effects such as API calls, subscriptions, or event listeners.
+`useMounted` runs a callback once after the component mounts. Async callbacks are allowed, but returned promises are not used as cleanup functions.
 
 > #### Syntax
 ```ts
-function useMounted(fn: EffectCallback): void;
+function useMounted(fn: () => void | Promise<void>): void;
 ```
 
 **Example:**
@@ -1221,7 +1631,7 @@ import { useMounted } from '@pastweb/react';
 
 function ExampleComponent() {
   useMounted(() => {
-    console.log('Component mounted');
+    analytics.track('mounted');
   });
 
   return <div>Hello, World!</div>;
@@ -1229,53 +1639,230 @@ function ExampleComponent() {
 ```
 
 ---
+### `createMicroStore`
 
-## Utility
-
-### `renderContent`
-
-The `renderContent` function just avauate the `content` parameter to be returned in the correct way for the rendering.
+`createMicroStore` takes the same parameters as `createMicroStore` from `@pastweb/tools`, creates the tools store, and returns a React-ready hook. The returned hook keeps the same readonly state/actions shape and re-renders after actions update selected state.
 
 > #### Syntax
 ```ts
-type Content = string | number | ReactElement | Component;
-
-function renderContent(content: Contrent, props: Record<string, any> = {}): Content
+function createMicroStore<S, A>(
+  name: string,
+  setup: (select: <T>(fn: Selector<T, S>) => T) => MicroStoreConfig<S, A>,
+): ReactUseMicroStore<S, A>;
 ```
 
-The `props` argument is optional and is applied just in case the content is a `ReactElement` or a react `Component`.
+**Example:**
+```tsx
+import { createMicroStore } from '@pastweb/react';
+
+const useCounterStore = createMicroStore('counter', () => ({
+  state: { count: 0 },
+  actions: {
+    increment() {
+      this.state.count += 1;
+    },
+  },
+}));
+
+function Counter() {
+  const counter = useCounterStore(state => state.count);
+
+  return (
+    <button onClick={counter.increment}>
+      {counter.state}
+    </button>
+  );
+}
+```
+
+---
+### `reuseMicroStore`
+
+`reuseMicroStore` is the lower-level bridge for a tools store that was already created elsewhere. Use it when the store belongs to the framework-agnostic layer, but a React component needs to read it and re-render when the selected state changes.
+
+> #### Syntax
+```ts
+function reuseMicroStore<S, A, T = S>(
+  store: UseMicroStore<S, A>,
+  selector?: ReactMicroStoreSelector<T, S>,
+): ReuseMicroStoreResult<T, A>
+```
+
+**Example:**
+```tsx
+import { createMicroStore } from '@pastweb/tools';
+import { reuseMicroStore } from '@pastweb/react';
+
+const settingsStore = createMicroStore('settings', () => ({
+  state: {
+    user: {
+      name: 'Ada',
+      preferences: {
+        theme: 'light',
+      },
+    },
+  },
+  actions: {
+    rename(name: string) {
+      this.state.user.name = name;
+    },
+    useDarkTheme() {
+      this.state.user.preferences.theme = 'dark';
+    },
+  },
+}));
+
+function UserSummary() {
+  const user = reuseMicroStore(settingsStore, state => state.user);
+
+  return (
+    <section>
+      <strong>{user.state.name}</strong>
+      <button onClick={user.useDarkTheme}>
+        Theme: {user.state.preferences.theme}
+      </button>
+    </section>
+  );
+}
+```
+
+The selector keeps the component focused on `state.user`, but the returned value still includes the store actions. Because the tools micro-store state is deeply reactive, changing `user.preferences.theme` refreshes the React component even though the store instance and selector are stable.
+
+---
+### `useRef`
+
+`useRef` creates a React ref with a `value` alias for `current`. Pastweb internals use `value` for cross-framework ref consistency, while the returned object still behaves like a normal React ref.
+
+> #### Syntax
+```ts
+function useRef<T>(value: T): RefObject<T> & { value: T };
+```
+
+**Example:**
+```tsx
+import { useRef } from '@pastweb/react';
+
+function Counter() {
+  const count = useRef(0);
+
+  count.value += 1;
+
+  return <span>{count.current}</span>;
+}
+```
+
+---
+
+## Utility functions
+
+### `Render`
+
+The `Render` component renders dynamic content from a string, number, React element, or React component.
+
+> #### Syntax
+```ts
+function Render(props: RenderProps): ReactElement | null
+```
+
+The `props` object is optional and is applied when `content` is a React element or component.
+
+**Example:**
+```tsx
+import { Render } from '@pastweb/react';
+
+function Status({ tone }: { tone: 'success' | 'warning' }) {
+  return <span>{tone}</span>;
+}
+
+function Example() {
+  return (
+    <>
+      <Render content="Ready" />
+      <Render content={<Status tone="warning" />} props={{ tone: 'success' }} />
+      <Render content={Status} props={{ tone: 'success' }} />
+    </>
+  );
+}
+```
 
 ---
 
 ### `setRef`
 
-The `setRef` utility function provides a convenient way to assign values to React refs. It supports both `MutableRefObject` refs and `callback` refs, ensuring compatibility with various ref handling patterns in React.
+The `setRef` utility assigns a value to an object ref or callback ref. It is useful when a component needs to keep an internal ref and also forward the same node to a consumer-provided ref.
 
 > #### Syntax
 ```ts
-function setRef<T>(ref: MutableRefObject<T> | ((ref: T) => void), value: any): void
+function setRef<T>(ref: Ref<T> | MutableRefObject<T | null> | null | undefined, value: T | null): void
 ```
 
 **Example:**
 ```tsx
-import { forwardRef, useCallback } from 'react';
+import { forwardRef, useCallback, useRef } from 'react';
 import { setRef } from '@pastweb/react';
 
-const ExampleComponent = forwardRef((props, ref) => {
-  const myRef = useCallback((node: null | <HTMLDivElement>) => {
-    if (node) {
-      node.focus();
-      // Set the ref value
-      setRef(ref, node);
-    }
-  }, []);
+const ExampleComponent = forwardRef<HTMLDivElement>((props, forwardedRef) => {
+  const localRef = useRef<HTMLDivElement | null>(null);
 
-  return <div ref={myRef}>Hello, world!</div>;
+  const assignRef = useCallback((node: HTMLDivElement | null) => {
+    localRef.current = node;
+    setRef(forwardedRef, node);
+
+    if (localRef.current) {
+      localRef.current.focus();
+    }
+  }, [forwardedRef]);
+
+  return (
+    <div ref={assignRef} tabIndex={-1}>
+      Hello, world!
+    </div>
+  );
 });
+```
+
+It also works with callback refs:
+
+**Example:**
+```tsx
+setRef((node: HTMLDivElement | null) => {
+  if (node) {
+    node.focus();
+  }
+}, document.createElement('div'));
+```
+
+---
+### `withDefaultProps`
+
+`withDefaultProps` merges props with defaults while preserving explicitly provided values. A default is used only when the prop value is `undefined`.
+
+> #### Syntax
+```ts
+function withDefaultProps<TProps>(props: Partial<TProps>, defaults: Partial<TProps>): TProps
+```
+
+**Example:**
+```tsx
+import { withDefaultProps } from '@pastweb/react';
+
+type ButtonProps = {
+  tone: 'neutral' | 'accent';
+  size: 'sm' | 'md';
+};
+
+function Button(props: Partial<ButtonProps>) {
+  const p = withDefaultProps<ButtonProps>(props, {
+    tone: 'neutral',
+    size: 'md',
+  });
+
+  return <button data-tone={p.tone}>{p.size}</button>;
+}
 ```
 
 ---
 
-### License
+## License
 
-This project is licensed under the MIT License.This project is licensed under the MIT License.
+This project is licensed under the MIT License.

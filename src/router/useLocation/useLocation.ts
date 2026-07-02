@@ -1,32 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { effect } from '@pastweb/tools/reactivity';
+import { useForceUpdate } from '../../useForceUpdate';
 import { useRouter } from '../useRouter';
 import type { Location } from '@pastweb/tools';
 
 /**
- * Custom hook that provides the current location object from the router.
+ * Reads the current router location and re-renders when it changes.
  *
- * @returns The current `Location` object, which contains information about the current route's path, query parameters, and more.
+ * @returns The router `Location` object.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * const location = useLocation();
- * console.log(`Current path: ${location.pathname}`);
  *
- * @remarks
- * - The hook listens for route changes and updates the location object accordingly.
- * - The location object is deep-cloned on updates to ensure that changes trigger a re-render when the location changes.
+ * return <span>{location.pathname}</span>;
+ * ```
  */
 export const useLocation = (): Location => {
   const router = useRouter();
-  const [location, setLocation] = useState(router.location);
+  const forceUpdate = useForceUpdate();
 
   useEffect(() => {
-    const listener = router.onRouteChange(() => {
-      setLocation({ ...router.location });
-    });
+    effect(forceUpdate, () => router.location.href);
+  }, [forceUpdate, router]);
 
-    return () => listener.removeListener();
-  }, []);
-
-  return location;
+  return router.location;
 };

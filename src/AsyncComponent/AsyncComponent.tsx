@@ -1,8 +1,15 @@
-import { useState, useRef, cloneElement, ReactElement, isValidElement, createElement } from 'react';
-import { Component } from '../createEntry';
+import { useState, cloneElement, isValidElement, createElement, type ReactElement } from 'react';
+import { isServer } from '@pastweb/tools';
+import { registerAsyncTask } from '@pastweb/tools/ssrUtils';
+import { Render } from '../Render';
 import { useBeforeMount } from '../useBeforeMount';
-import { loadDependency, normalizeDependency } from './util';
+import { useRef } from '../useRef';
+import { loadDependency, normalizeDependency } from './utils';
+import type { Component } from '../createEntry';
 import type { AsyncComponentProps, Dependency, DependencyInfo } from './types';
+
+// WeakMap keyed by the loader function so we can store the loaded component
+const preloadedOnServer = new WeakMap<() => Promise<any>, any>();
 
 /**
  * A React component that asynchronously loads and renders another component based on the provided `component` prop.
@@ -35,16 +42,26 @@ import type { AsyncComponentProps, Dependency, DependencyInfo } from './types';
  * // and the component is loaded, then it will render the loaded component with `someProp`.
  */
 export function AsyncComponent(props: AsyncComponentProps) {
-  const {
-    component,
-    dependencies,
-    fallback = null,
-    ...restProps
-  } = props;
+  return isServer ? serverSide(props) : clientSide(props);
+}
+
+/**
+ * Handles the client-side rendering of the async component.
+ * Loads dependencies and the main component asynchronously, displaying a fallback while loading.
+ *
+ * @param props - The properties for the `AsyncComponent`.
+ * @returns A React element representing the loaded component, the fallback, or `null`.
+ */
+function clientSide(props: AsyncComponentProps): ReactElement | null {
+  const { component, dependencies, fallback = null, ...restProps } = props;
 
   const [_component, setComponent] = useState<ReactElement | null>(fallback);
   const depCounter = useRef(0);
 
+  /**
+   * Loads the main component and updates the state with the rendered element.
+   * Logs an error to the console if the component fails to load.
+   */
   async function loadComponent() {
     try {
       const { default: Comp } = await component();
@@ -54,21 +71,31 @@ export function AsyncComponent(props: AsyncComponentProps) {
     }
   }
 
+  /**
+   * Increments the dependency counter and triggers component loading
+   * once all dependencies have been processed.
+   */
   function depCountIncrement(): void {
-    depCounter.current += 1;
-    if (depCounter.current === (dependencies!.length)) {
+    depCounter.value += 1;
+    if (depCounter.value === (dependencies!.length)) {
       loadComponent();
     }
   }
 
+  /**
+   * Loads all dependencies asynchronously. Each dependency is loaded and its counter incremented.
+   * Once all dependencies are processed, the main component is loaded.
+   * If no dependencies are provided, the main component is loaded immediately.
+   */
   async function loadDependencies() {
     if (dependencies) {
       dependencies.forEach(async (dep: Dependency | DependencyInfo, i: number) => {
         try {
-          const depPromise = loadDependency(normalizeDependency(dep));
-          depPromise.then(() => depCountIncrement());
+          await loadDependency(normalizeDependency(dep));
         } catch (e) {
-          console.error(`the dependency with the index ${i} has an error: ${e}`);
+          console.error(`the dependency with the index ${i} has an error:`, e);
+        } finally {
+          depCountIncrement();
         }
       });
     } else {
@@ -76,15 +103,62 @@ export function AsyncComponent(props: AsyncComponentProps) {
     }
   }
 
-  useBeforeMount(() => {
-    loadDependencies();
-  });
+  useBeforeMount(() => loadDependencies());
 
   return (
-    _component ? 
+    _component ?
       isValidElement(_component) ?
-      cloneElement(_component as ReactElement, restProps) :
-      createElement(_component as unknown as string | Component, restProps)
-    : null
+        cloneElement(_component as ReactElement, restProps) :
+        createElement(_component as unknown as string | Component, restProps)
+      : null
   );
+}
+
+/**
+ * Handles the server-side rendering of the async component.
+ * Awaits all dependencies and the main component before rendering synchronously.
+ *
+ * @param props - The properties for the `AsyncComponent`.
+ * @returns A promise resolving to a React element representing the loaded component, the fallback, or `null`.
+ */
+function serverSide(props: AsyncComponentProps): ReactElement | null {
+  const { component, dependencies = [], fallback = null, ...restProps } = props;
+
+  // If we already resolved this loader (after resolveAsyncTasks), render it
+  const Preloaded = preloadedOnServer.get(component);
+  if (Preloaded) {
+    return <Render content={Preloaded} props={restProps} />;
+  }
+
+  // During collection render: just register the work and return fallback immediately.
+  // The actual loading + nested discovery happens later in resolveAsyncTasks().
+  registerAsyncTask(async () => {
+    // 1. Load dependencies
+    if (dependencies && dependencies.length > 0) {
+      const normalized = dependencies.map(normalizeDependency);
+      await Promise.all(
+        normalized.map(async (dep, index) => {
+          try {
+            await loadDependency(dep);
+          } catch (err) {
+            console.error(`dependency ${index} failed:`, err);
+          }
+        })
+      );
+    }
+
+    // 2. Load the component
+    const module = await component();
+    const Comp = module.default as Component;
+
+    if (!Comp) {
+      console.error('AsyncComponent: No default export found');
+      return;
+    }
+
+    // 3. Store it so the final server render can use it directly
+    preloadedOnServer.set(component, Comp);
+  });
+
+  return null;
 }

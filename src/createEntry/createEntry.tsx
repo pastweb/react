@@ -1,6 +1,6 @@
-import { cloneElement, isValidElement, Fragment } from 'react';
+import { cloneElement, Fragment, isValidElement } from 'react';
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client';
-import { createEntry as _createEntry } from '@pastweb/tools';
+import { createEntry as _createEntry } from '@pastweb/tools/createEntry';
 import { UpdateEntry } from './UpdateEntry';
 import { WaitFor } from './WaitFor';
 import type { ReactEntry, ReactEntryOptions } from './types';
@@ -14,25 +14,19 @@ function getRenderComponent(entry: ReactEntry) {
   } = entry.options;
   const { EntryComponent } = entry;
 
-  const RootComponent = (initData: { [propName: string]: any }) => (
-    <Providers>
-      <UpdateEntry on={entry.on} {...initData}>
-        {isValidElement(EntryComponent) ? (
-          cloneElement(EntryComponent, initData)
-        ) : (
-          <EntryComponent />
-        )}
-      </UpdateEntry>
-    </Providers>
-  );
-
-  const RenderComponent = () => (
+  return () => (
     <WaitFor wait={waitFor} fallback={fallback}>
-      <RootComponent {...initData} />
+      <Providers>
+        <UpdateEntry on={entry.on} {...initData}>
+          {isValidElement(EntryComponent) ? (
+            cloneElement(EntryComponent, initData)
+          ) : (
+            <EntryComponent />
+          )}
+        </UpdateEntry>
+      </Providers>
     </WaitFor>
   );
-
-  return RenderComponent;
 }
 
 /**
@@ -51,6 +45,7 @@ function getRenderComponent(entry: ReactEntry) {
  * @example
  * // Example usage:
  * const entry = createEntry({
+ *   EntryComponent: MyComponent,
  *   Providers: MyProviders,
  *   initData: { someProp: 'value' },
  *   waitFor: [fetchData()],

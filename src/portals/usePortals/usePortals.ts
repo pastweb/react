@@ -1,21 +1,28 @@
-import { useContext } from '../../util';
-import { portalsContext } from '../constants';
-import type { PortalsDescriptor } from '@pastweb/tools';
+import { useContext } from 'react';
+import { PORTALS_CONTEXT_KEY } from '@pastweb/tools';
+import { getContext } from '../../GlobalContext';
+import { PORTALS_REACT_CONTEXT } from '../constants';
 
 /**
- * Custom hook that provides access to the portals context, allowing interaction with the application's portal system.
+ * Reads the portal descriptor installed by {@link installPortals}.
  *
- * @typeParam T - The expected type of the portals context. By default, the context is cast to `PortalsDescriptor`.
+ * @typeParam T - Expected portal descriptor shape.
  *
- * @returns The current portals context cast to the specified type `T`.
- *
- * @throws Will throw an error if the `portalsContext` is not found, ensuring that the hook is used within a valid context provider.
+ * @returns The current portals context cast to `T`.
  *
  * @example
- * // Example usage:
- * const portals = usePortals<MyPortalsType>();
- * portals.modal.open(<MyModalComponent />);
+ * ```tsx
+ * type AppPortals = {
+ *   modal: PortalFunction;
+ * };
+ *
+ * const portals = usePortals<AppPortals>();
+ * const entryId = portals.modal(<Dialog />).open();
+ * ```
  */
 export function usePortals<T>(): T {
-  return useContext<PortalsDescriptor>(portalsContext, 'portalsContext') as T;
+  const providerPortals = useContext(PORTALS_REACT_CONTEXT);
+  const globalPortals = getContext<T>(PORTALS_CONTEXT_KEY);
+
+  return (providerPortals ?? globalPortals) as T;
 }

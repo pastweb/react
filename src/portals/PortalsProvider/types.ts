@@ -1,13 +1,10 @@
-import type { ReactNode, ReactElement } from 'react';
-import type { Portals, IdCache, PortalAnchorsIds } from '@pastweb/tools';
-import type { ReactEntry } from '../../createEntry';
-import type { EntryDescriptor } from '../types';
+import type { ReactNode } from 'react';
+import type { PortalsOptions } from '../installPortals';
 
-export interface PortalsProviderProps {
-  getEntry: (props: Record<string, any>, component: ReactElement | null) => ReactEntry;
-  anchors: PortalAnchorsIds;
-  descriptor?: EntryDescriptor;
-  idChahe?: IdCache;
-  portalsCache?: Portals;
+/**
+ * Props accepted by {@link PortalsProvider}.
+ */
+export interface PortalsProviderProps extends PortalsOptions {
+  /** React subtree that receives portal helpers through React context. */
   children: ReactNode;
-};
+}

@@ -1,7 +1,9 @@
-import { Store, Reducer, combineReducers } from 'redux';
-import { UnknownAction, configureStore } from '@reduxjs/toolkit';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { createAsyncStore, noop } from '@pastweb/tools';
+import { combineReducers, type  Reducer, type  Store } from 'redux';
+import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
+import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux';
+// import { createAsyncStore, noop } from '@pastweb/tools';
+import { noop } from '@pastweb/tools';
+import { createAsyncStore } from './temp/createAsyncStore';
 import type { ReduxAsyncStore, ReduxStoreOptions } from './types';
 
 /**
@@ -35,8 +37,6 @@ import type { ReduxAsyncStore, ReduxStoreOptions } from './types';
  * store.removeReducer('oldReducer');
  */
 export function createReduxAsyncStore(options: ReduxStoreOptions): ReduxAsyncStore {
-  const asyncStore = createAsyncStore<ReduxAsyncStore>({ ...options, storeName: 'ReduxAsyncStore' });
-
   const store: Store & {
     asyncReducers: {
       [reducerName: string]: Reducer;
@@ -45,6 +45,11 @@ export function createReduxAsyncStore(options: ReduxStoreOptions): ReduxAsyncSto
     ...configureStore(options.settings),
     asyncReducers: {},
   };
+  
+  const asyncStore = createAsyncStore<ReduxAsyncStore>({
+    ...options,
+    name: `ReduxAsyncStore${options.name ? `:${options.name}` : ''}`,
+  });
 
   asyncStore.store = store;
 
@@ -70,24 +75,25 @@ export function createReduxAsyncStore(options: ReduxStoreOptions): ReduxAsyncSto
   }
 
   function addReducer(reducerKey: string, reducer: Reducer): void {
-    if(store.asyncReducers[reducerKey]) return;
-  
+    if (store.asyncReducers[reducerKey]) return;
+
     store.asyncReducers[reducerKey] = reducer;
     store.replaceReducer(getRootReducer(store.asyncReducers) as Reducer<any, UnknownAction, any>);
   }
 
   function removeReducer(reducerKey: string): void {
-    if(store.asyncReducers[reducerKey]) {
-      const filtered = Object.entries(store.asyncReducers)
-        .reduce((acc, [reducerName, reducer]) => ({
-          ...reducerKey !== reducerName ? { [reducerName]: reducer } : acc,
-        }), {});
+    if (!store.asyncReducers[reducerKey]) return;
 
-      store.replaceReducer(getRootReducer(filtered) as Reducer<any, UnknownAction, any>);
-    }
+    // Create new object without the removed reducer
+    const filtered = { ...store.asyncReducers };
+    delete filtered[reducerKey];
+    store.asyncReducers = filtered;
+
+    // Update Redux store with new root reducer
+    store.replaceReducer(getRootReducer(filtered) as Reducer<any, UnknownAction, any>);
   }
 
-  return asyncStore as Omit <ReduxAsyncStore, 'useSelector'> & {
+  return asyncStore as Omit<ReduxAsyncStore, 'useSelector'> & {
     useSelector: TypedUseSelectorHook<ReturnType<typeof store.getState>>;
   };
 }

@@ -1,24 +1,25 @@
 import { useRef } from 'react';
 
 /**
- * Custom hook that executes a function once before the component mounts.
- * 
- * This hook ensures that the provided function is called only once, 
- * before the component's initial render.
+ * Runs a function once during the component's first render.
  *
- * @param fn - The function to be executed before the component mounts.
+ * This hook is useful for synchronous setup that must be available before the
+ * initial React commit. It intentionally does not run again on re-render.
+ *
+ * @param fn - Function to run once before mount.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * useBeforeMount(() => {
- *   console.log('Component is about to mount');
+ *   registry.register(id);
  * });
+ * ```
  */
 export const useBeforeMount = (fn: () => void): void => {
-    const isFunctionCalled = useRef(false);
+  const isFunctionCalled = useRef(false);
 
-    if (!isFunctionCalled.current) {
-        fn();
-        isFunctionCalled.current = true;
-    }
+  if (!isFunctionCalled.current) {
+    fn();
+    isFunctionCalled.current = true;
+  }
 }

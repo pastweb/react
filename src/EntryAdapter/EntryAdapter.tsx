@@ -1,8 +1,11 @@
-import { useRef, useCallback, useEffect } from 'react';
-import { type Entry, isSSR } from '@pastweb/tools';
+import { useCallback, useEffect, useRef } from 'react';
+import { isServer } from '@pastweb/tools/envs';
+import { isEntry } from '@pastweb/tools/createEntry';
 import { useBeforeMount } from '../useBeforeMount';
 import { useBeforeUnmount } from '../useBeforeUnmount';
-import type { EntryAdapterProps } from './types';
+import { useIsland } from '../Island';
+import { renderServerEntryAdapter } from './utils';
+import type { EntryAdapterProps, GenericEntry } from './types';
 
 /**
  * The `EntryAdapter` component serves as a bridge to integrate `Entry` objects with React components.
@@ -10,53 +13,60 @@ import type { EntryAdapterProps } from './types';
  *
  * @param props - The props for the `EntryAdapter` component.
  * @param props.entry - A function that returns an `Entry` object. This is used to interact with the entry system.
- * @param props.hydrate - A function to hydrate the entry element, typically used for server-side rendered content.
- * @param props.isStatic - A boolean indicating if the entry should be treated as static.
+ * @param props.ssrEntry - Optional async server-only entry loader, resolved through the SSR async task queue.
  * @param rest - Any additional props to be passed to the entry's `mergeOptions` method.
  *
  * @returns A `div` element with a `ref` attached for mounting the entry, or an SSR ID if server-side rendering is enabled.
  *
- * @throws Will throw an error if the `entry` does not have the `$$entry` property, indicating that it was not created using the `createEntry` function.
+ * @throws When `entry` or the resolved `ssrEntry` is not a valid Pastweb entry.
  *
  * @example
- * // Example usage:
- * const myEntry = () => createEntry({ ...entry options });
- * <EntryAdapter entry={myEntry} hydrate={myHydrateFunction} isStatic={false} someOption="value" />
+ * ```tsx
+ * import { createEntry, EntryAdapter } from '@pastweb/react';
+ *
+ * const createClientEntry = () => createEntry({ EntryComponent: Widget });
+ *
+ * <EntryAdapter
+ *   entry={createClientEntry}
+ *   {...(import.meta.env.SSR
+ *     ? {
+ *         ssrEntry: () =>
+ *           import('./widget.server-entry').then(module => module.createServerEntry()),
+ *       }
+ *     : {})}
+ *   widgetId="main"
+ * />
+ * ```
  */
 export function EntryAdapter(props: EntryAdapterProps) {
-  const { entry: _entry, hydrate, isStatic, ...rest } = props;
-  const entry = useRef<Entry<any>>(_entry());
+  const { entry: _entry, ssrEntry: _ssrEntry, ...rest } = props;
+  const isIsland = useIsland();
+  const entry = useRef<GenericEntry>(_entry());
   const entryElement = useRef<HTMLElement | null>(null);
-  const ssrId = useRef<string>('');
+
+  if (isServer) {
+    return renderServerEntryAdapter(entry.current, _ssrEntry, rest);
+  }
 
   useBeforeMount(() => {
-    if (!entry.current.$$entry) {
+    if (!isEntry(entry.current)) {
       throw Error('The entry must be generate via "createEntry" function.');
     }
 
     entry.current.mergeOptions({ initData: { ...rest } });
-
-    if(isSSR) {
-      ssrId.current = entry.current.ssrId as string;
-      entry.current.memoSSR(async () => (entry as any).mount({ isStatic }));
-    }
   });
 
   const ref = useCallback((node: HTMLElement | null) => {
     if (node) {
-      entryElement.current = node.parentElement as HTMLElement;
+      entryElement.current = node;
       entry.current.setEntryElement(entryElement.current as HTMLElement);
-      entry.current.emit('mount', { hydrate });
+      entry.current.emit('mount', { hydrate: isIsland });
     }
-  }, []);
+  }, [isIsland]);
 
-  useEffect(() => {
-    entry.current.emit('update', rest);
-  }, [rest]);
+  useEffect(() => entry.current.emit('update', rest), [rest]);
 
-  useBeforeUnmount(() => {
-    entry.current.emit('unmount');
-  });
+  useBeforeUnmount(() => queueMicrotask(() => entry.current.emit('unmount')));
 
-  return ssrId.current || <div ref={ref} style={{ display:'contents' }} />;
+  return <div ref={ref} style={{ display: 'contents' }} />;
 }

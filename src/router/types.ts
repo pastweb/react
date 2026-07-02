@@ -1,5 +1,5 @@
-import { RouterOptions as Options, Route as _Route } from '@pastweb/tools';
-import { Component } from '../createEntry';
+import type { RouterOptions as Options, Route as _Route } from '@pastweb/tools';
+import type { Component } from '../createEntry';
 
 export type ViewComponent = Component;
 

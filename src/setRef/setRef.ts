@@ -1,26 +1,33 @@
-import { isObject } from '@pastweb/tools';
-import type { MutableRefObject, ForwardedRef } from 'react';
+import type { MutableRefObject, Ref } from 'react';
+
+function isRefObject<T>(ref: unknown): ref is MutableRefObject<T | null> {
+  return !!ref && typeof ref === 'object' && Object.hasOwn(ref, 'current');
+}
 
 /**
- * Utility function that sets the value of a ref, supporting both callback refs and `MutableRefObject`.
+ * Assigns a value to an object ref or callback ref.
  *
- * @template T - The type of the ref's value.
+ * This is useful in components that need to keep an internal ref while also
+ * forwarding the same node to a consumer-provided ref.
  *
- * @param ref - The ref to be set, which can be a callback ref function or a `MutableRefObject`.
- * @param value - The value to be assigned to the ref.
+ * @typeParam T - Ref value type.
+ * @param ref - React ref to update. `null` and unsupported values are ignored.
+ * @param value - Value assigned to the ref. Pass `null` when clearing it.
  *
  * @example
- * // Using with a MutableRefObject:
- * const myRef = useRef<HTMLDivElement>(null);
- * setRef(myRef, someValue);
+ * ```tsx
+ * const localRef = useRef<HTMLDivElement | null>(null);
  *
- * // Using with a callback ref:
- * setRef((ref) => { console.log(ref); }, someValue);
+ * const assignRef = useCallback((node: HTMLDivElement | null) => {
+ *   localRef.current = node;
+ *   setRef(forwardedRef, node);
+ * }, [forwardedRef]);
+ * ```
  */
-export function setRef<T>(ref: ForwardedRef<T> | MutableRefObject<T> | ((ref: T) => void), value: any): void {
+export function setRef<T>(ref: Ref<T> | MutableRefObject<T | null> | null | undefined, value: T | null): void {
   if (typeof ref === 'function') {
     ref(value);
-  } else if (isObject(ref) && Object.hasOwn(ref as MutableRefObject<T>, 'current')) {
-    (ref as MutableRefObject<T>).current = value;
+  } else if (isRefObject<T>(ref)) {
+    ref.current = value;
   }
 }

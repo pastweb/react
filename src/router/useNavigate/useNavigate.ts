@@ -1,20 +1,18 @@
 import { useRouter } from '../useRouter';
 
 /**
- * Custom hook that provides a function to navigate to a specified path within the application.
+ * Returns the router navigation function.
  *
- * @returns A function that accepts a `path` and an optional `state` object, allowing navigation to the specified path.
+ * @returns A function that navigates to a path and resolves when the router is done.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * const navigate = useNavigate();
- * navigate('/dashboard', { from: 'login' });
  *
- * @remarks
- * - The returned `navigate` function is tied to the router context and can be used to programmatically change routes.
- * - The `state` parameter allows passing additional state information during navigation.
+ * await navigate('/dashboard', { from: 'login' });
+ * ```
  */
-export const useNavigate = (): (path: string, state?: any) => void => {
+export const useNavigate = (): (path: string, state?: any) => Promise<void> => {
   const router = useRouter();
   return router.navigate;
 };

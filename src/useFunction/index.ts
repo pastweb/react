@@ -1,1 +1,0 @@
-export { useFunction } from './useFunction';

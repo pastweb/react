@@ -1,89 +1,78 @@
-import { useRef, cloneElement } from 'react';
-import { select, isObject, effect, type PortalHandler } from '@pastweb/tools';
-import { useBeforeMount } from '../../useBeforeMount';
+import { cloneElement, useEffect, useState, type ReactElement } from 'react';
+import { isPortalHandler, select, type PortalHandler } from '@pastweb/tools';
+import { useRef } from '../../useRef';
+// import { useMounted } from '../../useMounted';
 import { usePortals } from '../usePortals';
 import type { PortalProps, Portals } from './types';
 
 /**
- * The `Portal` component integrates with the portal system to render its children into a specific portal location.
- * It sets up and manages the portal handler for opening, updating, and closing the portal.
+ * Wires a {@link usePortal} handler to a portal path from the installed portal
+ * descriptor.
  *
- * @param props - The props for the `Portal` component.
- * @param props.path - The path to the target portal where the content should be rendered.
- * @param props.use - The `PortalHandler` object used to manage the portal's lifecycle. Must be a valid `PortalHandler` object.
- * @param props.children - The content to be rendered inside the portal.
- * @param restProps - Any additional props to be passed to the rendered content inside the portal.
+ * The component itself renders `null`; the child element is mounted by the
+ * entry returned from the portal `getEntry` function when `use.open()` is
+ * called.
  *
- * @returns `null` - This component does not render anything to the DOM directly.
+ * @param props - Portal target path, handler, and child element.
+ * @returns `null`.
  *
- * @throws Will throw an error if the `use` prop is not a valid `PortalHandler` object.
+ * @throws When `use` is not a valid tools portal handler.
  *
  * @example
- * // Example usage:
- * import { usePortal } from '@pastweb/react';
- * const portalHandler = usePortal();
- * <Portal path="myPortal" use={portalHandler}>
- *   <MyComponent />
+ * ```tsx
+ * const modal = usePortal();
+ *
+ * <Portal path="modal" use={modal}>
+ *   <Dialog />
  * </Portal>
+ * ```
  */
 export function Portal(props: PortalProps) {
-  const { path, use, children, ...restProps } = props;
+  const { children, path, use } = props;
 
-  if (!isObject(use) || !Object.hasOwn(use, "$$portalHandler")) {
+  if (!isPortalHandler(use)) {
     throw Error(
       'Portal error - the "use" property must be a PortalHandler Object.'
     );
   }
 
   const portals = usePortals() as Portals;
-  const storedProps = useRef(restProps);
-  const isOpen = useRef<boolean>(false);
-  const _use = useRef<PortalHandler | null>(null);
+  const handler = useRef<PortalHandler | null>(null);
+  const [entryId, setEntryId] = useState<string | false>(false);
+  const component = useRef<ReactElement>(cloneElement(children));
 
-  useBeforeMount(() => {
+  useEffect(() => {
+    component.value = cloneElement(children);
+  }, [children]);
+
+  useEffect(() => {
+    if (!use) return;
+
     use.open = () => {
-      const portal = select(portals, path);
-      _use.current = portal(cloneElement(children, restProps));
+      if (entryId) return entryId;
 
-      (_use.current as PortalHandler).onRemove(() => {
+      const createHandler = select(portals, path);
+      handler.value = createHandler(component.value);
+      const h = handler.value as PortalHandler;
+
+      h.onRemove(() => {
         use.id = false;
-        isOpen.current = false;
+        setEntryId(false);
       });
 
-      effect(
-        _use.current as PortalHandler,
-        (newValues) => {
-          use.id = newValues.id as string | false;
-        },
-        "id"
-      );
+      use.update = h.update;
+      use.close = () => h.close();
+      use.remove = () => h.remove();
 
-      use.update = (_use.current as PortalHandler).update;
+      const id = h.open();
+      use.id = id;
+      setEntryId(id);
 
-      use.close = () => (_use.current as PortalHandler).close;
-
-      use.remove = () => (_use.current as PortalHandler).remove();
-
-      isOpen.current = true;
-      return (_use.current as PortalHandler).open();
+      return id;
     };
-  });
 
-  if (isOpen.current) {
-    let mustUpdate = false;
-
-    for (const [prop, val] of Object.entries(restProps)) {
-      if ((storedProps.current as Record<string, any>)[prop] !== val) {
-        mustUpdate = true;
-        break;
-      }
-    }
-
-    if (mustUpdate) {
-      storedProps.current = restProps;
-      (_use.current as PortalHandler).update(storedProps.current);
-    }
-  }
+    use.isReady();
+  }, [use]);
 
   return null;
 }

@@ -1,20 +1,22 @@
-import { useEffect, EffectCallback } from 'react';
+import { useEffect } from 'react';
 
 /**
- * Custom hook that runs the provided effect callback only once, after the component is mounted.
+ * Runs a callback once after the component mounts.
  *
- * @param fn - The effect callback function to be executed after the component is mounted.
- *             This function should optionally return a cleanup function, or `undefined`.
+ * Async callbacks are allowed, but returned promises are not used as cleanup
+ * functions.
+ *
+ * @param fn - Callback to run after mount.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * useMounted(() => {
- *   console.log('Component mounted');
- *   return () => {
- *     console.log('Component will unmount');
- *   };
+ *   analytics.track('mounted');
  * });
+ * ```
  */
-export const useMounted = (fn: EffectCallback): void  => {
-    useEffect(fn, []);
+export const useMounted = (fn: () => void | Promise<void>): void => {
+  useEffect(() => {
+    void Promise.resolve(fn());
+  }, []);
 }

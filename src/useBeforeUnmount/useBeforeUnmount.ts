@@ -1,16 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 /**
- * Custom hook that executes a function right before the component unmounts.
+ * Runs the latest callback when the component unmounts.
  *
- * @param fn - The function to be executed before the component unmounts.
+ * @param fn - Cleanup callback.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * useBeforeUnmount(() => {
- *   console.log('Component is about to unmount');
+ *   subscription.close();
  * });
+ * ```
  */
 export const useBeforeUnmount = (fn: () => void): void => {
-    useEffect((): (() => void) => fn, []);
+  const fnRef = useRef(fn);
+  fnRef.current = fn;
+
+  useEffect(() => () => fnRef.current(), []);
 }

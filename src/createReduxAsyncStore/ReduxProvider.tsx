@@ -1,6 +1,8 @@
 import { cloneElement, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
-import type { ReduxProviderProps } from './types';
+import { isAsyncStore } from './temp/createAsyncStore/isAsyncStore';
+import type { Store } from '@reduxjs/toolkit';
+import type { ReduxProviderProps, ReduxAsyncStore } from './types';
 
 /**
  * The `ReduxProvider` component wraps its children with the Redux `Provider` component,
@@ -8,7 +10,7 @@ import type { ReduxProviderProps } from './types';
  * a fallback UI that is displayed while the store is initializing.
  *
  * @param props - The props for the `ReduxProvider` component.
- * @param props.reduxStore - The Redux store object to be provided to the Redux context.
+ * @param props.store - The async Redux store object or regular Redux store to be provided to the Redux context.
  * @param props.children - The React elements to be rendered inside the Redux `Provider` once the store is ready.
  * @param props.fallback - Optional fallback UI to be displayed while the Redux store is initializing. Defaults to an empty fragment.
  *
@@ -21,19 +23,21 @@ import type { ReduxProviderProps } from './types';
  * </ReduxProvider>
  */
 export function ReduxProvider(props: ReduxProviderProps) {
-  const { reduxStore, children, fallback = <></> } = props;
-  const [ready, setReady] = useState<boolean>(false);
+  const { store, children, fallback = <></> } = props;
+  const [ready, setReady] = useState<boolean>(!isAsyncStore(store));
 
   useEffect(() => {
+    if (ready) return;
+      
     (async () => {
-      const result = await reduxStore.isReady;
+      const result = await (store as ReduxAsyncStore).isReady;
       setReady(result);
     })();
   }, []);
 
   return (
     !ready ? cloneElement(fallback) : (
-      <Provider store={reduxStore.store}>
+      <Provider store={isAsyncStore(store) ? (store as ReduxAsyncStore).store : store as Store}>
         {children}
       </Provider>
     )

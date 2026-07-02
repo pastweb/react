@@ -2,29 +2,7 @@ import { forwardRef } from 'react';
 import { useRouterLink } from '../useRouterLink';
 import type { ReactNode, MouseEvent } from 'react';
 
-/**
- * The `RouterLink` component renders a navigational link that integrates with the application's routing system.
- * It allows for navigation within the application without triggering a full page reload.
- *
- * @param props - The props for the `RouterLink` component.
- * @param props.path - The target path for the link.
- * @param props.params - (Optional) An object containing route parameters.
- * @param props.searchParams - (Optional) A `URLSearchParams` object representing query parameters.
- * @param props.hash - (Optional) A string representing the fragment identifier for the link.
- * @param props.className - (Optional) A string of classes to apply to the anchor element.
- * @param props.preventNavigate - (Optional) A boolean to prevent navigation when the link is clicked. Defaults to `false`.
- * @param props.children - The content to be displayed inside the link.
- * @param ref - A React ref that is forwarded to the anchor (`<a>`) element.
- *
- * @returns A React element that renders an anchor (`<a>`) tag with the specified path and properties.
- *
- * @example
- * // Example usage:
- * <RouterLink path="/dashboard" className="nav-link">
- *   Go to Dashboard
- * </RouterLink>
- */
-export const RouterLink = forwardRef((props: {
+export interface RouterLinkProps {
   path: string;
   params?: Record<string, string | number | boolean | null | undefined>;
   searchParams?: URLSearchParams;
@@ -32,9 +10,29 @@ export const RouterLink = forwardRef((props: {
   className?: string;
   preventNavigate?: boolean;
   children: ReactNode;
-}, ref: any) => {
-  const { path, className, preventNavigate, children } = props;
-  const { navigate } = useRouterLink(props);
+}
+
+/**
+ * Renders a router-aware anchor.
+ *
+ * The `href` comes from `router.getRouterLink`, so route params, query params,
+ * hash, and active-route matching all use the same tools router logic as
+ * `useRouterLink`.
+ *
+ * @param props - Router link options plus anchor presentation props.
+ * @param ref - Forwarded anchor ref.
+ * @returns An anchor element.
+ *
+ * @example
+ * ```tsx
+ * <RouterLink path="/users/:id" params={{ id: 123 }}>
+ *   User profile
+ * </RouterLink>
+ * ```
+ */
+export const RouterLink = forwardRef<HTMLAnchorElement, RouterLinkProps>((props, ref) => {
+  const { className, preventNavigate, children } = props;
+  const { pathname, navigate } = useRouterLink(props);
 
   function onClick(e: MouseEvent) {
     e.preventDefault();
@@ -43,7 +41,7 @@ export const RouterLink = forwardRef((props: {
   }
 
   return (
-    <a ref={ref} href={path} className={className} onClick={onClick}>
+    <a ref={ref} href={pathname} className={className} onClick={onClick}>
       { children }
     </a>
   );

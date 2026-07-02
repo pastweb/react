@@ -1,16 +1,23 @@
-import { useContext } from '../../util';
-import { routeDepthContext } from '../constants';
+import { useContext } from 'react';
+import { ROUTE_DEPTH_CONTEXT_KEY } from '@pastweb/tools';
+import { getContext } from '../../GlobalContext';
+import { ROUTE_DEPTH_REACT_CONTEXT } from '../constants';
 
 /**
- * Custom hook that retrieves the current route depth from the `routeDepthContext`.
+ * Reads the current `RouterView` nesting depth.
  *
- * @returns The current route depth as a number from the `routeDepthContext`.
+ * @returns Current route depth. The root provider starts at `-1`.
  *
- * @throws Will throw an error if the `routeDepthContext` is not found, ensuring that the hook is used within a valid context provider.
+ * @throws When route depth has not been installed.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * const depth = useRouteDepth();
- * console.log(`Current route depth is: ${depth}`);
+ * ```
  */
-export const useRouteDepth = (): number  => useContext<number>(routeDepthContext, 'routeDepthContext');
+export function useRouteDepth(): number {
+  const providerDepth = useContext(ROUTE_DEPTH_REACT_CONTEXT);
+  const globalDepth = getContext<number>(ROUTE_DEPTH_CONTEXT_KEY);
+
+  return providerDepth ?? globalDepth;
+}

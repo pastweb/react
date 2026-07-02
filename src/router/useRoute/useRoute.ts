@@ -1,40 +1,30 @@
-import { useState, useEffect } from 'react';
-import { type SelectedRoute, routeDive } from '@pastweb/tools';
+import { useEffect } from 'react';
+import { routeDive, type SelectedRoute } from '@pastweb/tools';
+import { effect } from '@pastweb/tools/reactivity';
+import { useForceUpdate } from '../../useForceUpdate';
 import { useRouter } from '../useRouter';
 import { useRouteDepth } from '../useRouteDepth';
-import { useContext } from '../../util';
-import { routeContext } from '../constants';
-import type { Route } from '../types';
 
 /**
- * Custom hook that provides the currently active route at the specified depth in the route hierarchy.
+ * Reads the current route at the active `RouterView` depth.
  *
- * @returns The current `SelectedRoute` at the specified depth.
+ * @returns The selected route for the current depth.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * const currentRoute = useRoute();
- * console.log(`Current route path: ${currentRoute.path}`);
  *
- * @remarks
- * - This hook listens for route changes and updates the selected route accordingly.
- * - The depth is determined using the `useRouteDepth` hook, which indicates the depth of the route within the routing hierarchy.
- *
- * @throws Will throw an error if the `routeContext` is not found, ensuring that the hook is used within a valid context provider.
+ * return <h1>{currentRoute.path}</h1>;
+ * ```
  */
 export const useRoute = (): SelectedRoute => {
   const router = useRouter();
-  const route = useContext<Route>(routeContext, 'routeContext') as SelectedRoute;
   const depth = useRouteDepth();
-  const [currentRoute, setCurrentRoute] = useState<SelectedRoute>(routeDive(route, depth));
+  const forceUpdate = useForceUpdate();
 
   useEffect(() => {
-    const listener = router.onRouteChange((newRoute: SelectedRoute) => {
-      setCurrentRoute(routeDive(newRoute, depth));
-    });
+    effect(forceUpdate, () => routeDive(router.currentRoute, depth));
+  }, [depth, forceUpdate, router]);
 
-    return () => listener.removeListener();
-  }, []);
-
-  return currentRoute;
+  return routeDive(router.currentRoute, depth);
 };

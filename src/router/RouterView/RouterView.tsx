@@ -1,37 +1,54 @@
-import { routeDive, type SelectedRoute } from '@pastweb/tools';
+import { useContext } from 'react';
+import { ROUTE_DEPTH_CONTEXT_KEY, routeDive, type SelectedRoute } from '@pastweb/tools';
+import { useBeforeMount } from '../../useBeforeMount';
+import { useRef } from '../../useRef';
+import { GlobalContext } from '../../GlobalContext';
+import { ROUTE_DEPTH_REACT_CONTEXT } from '../constants';
 import { useRoute } from '../useRoute';
 import { useRouteDepth } from '../useRouteDepth';
-import { routeDepthContext } from '../constants';
 import type { ViewComponent } from '../types';
 import type { RouterViewProps } from './types';
 
 /**
- * The `RouterView` component is responsible for rendering a view component based on the current route
- * and route depth. It allows for nested routes by managing route depth context.
+ * Renders the view component selected for the current route depth.
  *
- * @param props - The props for the `RouterView` component.
- * @param props.name - The name of the view to render from the available views in the selected route. Defaults to `'default'`.
- * @param props.beforeShow - (Optional) A function that runs before the view is shown. It receives the selected route and can modify it.
- * @param rest - Additional props that are passed to the rendered view component.
+ * Nested `RouterView` instances increment the route depth through
+ * `GlobalContext`, allowing child routes to render their own views.
  *
- * @returns A React element that renders the appropriate view component for the current route and route depth. If no view is found, it renders `null`.
+ * @param props - View name, optional route transform, and props passed to the rendered view.
+ * @returns The selected view or `null` when no matching view exists.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * <RouterView name="main" />
+ * ```
  */
 export function RouterView({ name = 'default', beforeShow, ...rest }: RouterViewProps) {
   const route = useRoute();
-  const depth = useRouteDepth() + 1;
+  const routeDepth = useRouteDepth();
+  const providerDepth = useContext(ROUTE_DEPTH_REACT_CONTEXT);
+  const depth = useRef<number>(-1);
 
-  const selected = routeDive(route as SelectedRoute, depth) as SelectedRoute;
+  useBeforeMount(() => {
+    depth.value = routeDepth + 1;
+  });
+
+  if (depth.value > 10) return null;
+  const selected = routeDive(route as SelectedRoute, depth.value) as SelectedRoute;
   const { views } = beforeShow ? beforeShow(selected) : selected;
-
   const View = (views as Record<string, ViewComponent>)[name] as ViewComponent;
 
+  const content = (
+    <ROUTE_DEPTH_REACT_CONTEXT.Provider value={depth.value}>
+      {View ? <View {...rest} /> : null}
+    </ROUTE_DEPTH_REACT_CONTEXT.Provider>
+  );
+
+  if (providerDepth !== undefined) return content;
+
   return (
-    <routeDepthContext.Provider value={depth}>
-      {View ? <View { ...rest } /> : null}
-    </routeDepthContext.Provider>
+    <GlobalContext update={{ [ROUTE_DEPTH_CONTEXT_KEY]: depth.value }}>
+      {content}
+    </GlobalContext>
   );
 }

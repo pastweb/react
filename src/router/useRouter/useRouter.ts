@@ -1,17 +1,26 @@
-import { useContext } from '../../util';
-import { routerContext } from '../constants';
+import { useContext } from 'react';
+import { ROUTER_CONTEXT_KEY } from '@pastweb/tools';
+import { getContext } from '../../GlobalContext';
+import { ROUTER_REACT_CONTEXT } from '../constants';
 import type { ViewRouter } from '@pastweb/tools';
 
 /**
- * Custom hook that retrieves the `ViewRouter` instance from the router context.
+ * Reads the installed tools `ViewRouter`.
  *
- * @returns The `ViewRouter` instance from the `routerContext`.
+ * @returns The router installed with {@link installRouter}.
  *
- * @throws Will throw an error if the `routerContext` is not found, ensuring that the hook is used within a valid context provider.
+ * @throws When the router context has not been installed.
  *
  * @example
- * // Example usage:
+ * ```tsx
  * const router = useRouter();
- * router.navigate('/home'); // Navigate to the '/home' route
+ *
+ * await router.navigate('/home');
+ * ```
  */
-export const useRouter = (): ViewRouter => useContext<ViewRouter>(routerContext, 'routerContext');
+export function useRouter(): ViewRouter {
+  const providerRouter = useContext(ROUTER_REACT_CONTEXT);
+  const globalRouter = getContext<ViewRouter>(ROUTER_CONTEXT_KEY);
+
+  return providerRouter ?? globalRouter;
+}

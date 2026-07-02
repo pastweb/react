@@ -1,25 +1,25 @@
-import { useContext } from '../../util';
-import { portalAnchorsContext } from '../constants';
-import type { PortalAnchorsIds } from '@pastweb/tools';
+import { useContext } from 'react';
+import { PORTAL_ANCHORS_CONTEXT_KEY } from '@pastweb/tools';
+import { getContext } from '../../GlobalContext';
+import { PORTAL_ANCHORS_REACT_CONTEXT } from '../constants';
 
 /**
- * Custom hook that provides access to the portal anchors context, which manages the IDs of portal anchors within the application.
+ * Reads the portal anchor ids installed by {@link installPortals}.
  *
- * @typeParam T - The expected type of the portal anchors context. By default, the context is cast to `PortalAnchorsIds`.
+ * @typeParam T - Expected anchor id shape.
  *
- * @returns The current portal anchors context cast to the specified type `T`.
- *
- * @throws Will throw an error if the `portalAnchorsContext` is not found, ensuring that the hook is used within a valid context provider.
+ * @returns The current portal anchor ids cast to `T`.
  *
  * @example
- * // Example usage:
- * const portalAnchors = usePortalAnchors<MyAnchorType>();
- * console.log(portalAnchors.mainAnchorId);
+ * ```tsx
+ * const anchors = usePortalAnchors<{ modal: string }>();
  *
- * @remarks
- * - The `usePortalAnchors` hook allows components to access and interact with the IDs of portal anchors, which are used for managing the location where portals are rendered in the DOM.
- * - The context is cast to the specified type `T`, providing type safety for the returned context object.
+ * return <div id={anchors.modal} />;
+ * ```
  */
 export function usePortalAnchors<T>(): T {
-  return useContext<PortalAnchorsIds>(portalAnchorsContext, 'portalAnchorsContext') as T;
+  const providerAnchors = useContext(PORTAL_ANCHORS_REACT_CONTEXT);
+  const globalAnchors = getContext<T>(PORTAL_ANCHORS_CONTEXT_KEY);
+
+  return (providerAnchors ?? globalAnchors) as T;
 }
