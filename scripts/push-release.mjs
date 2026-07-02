@@ -89,5 +89,4 @@ if (hasStagedChanges) {
 run('git', ['tag', tagName]);
 run('git', ['push']);
 run('git', ['push', 'origin', tagName]);
-console.log('Publishing to npm. If npm opens a browser authentication flow, complete it there and wait for this command to continue.');
-run('npm', ['publish']);
+console.log('Publishing to npm. Just run "npm publish".');
