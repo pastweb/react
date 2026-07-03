@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { getFunctionSignature, isHMREnabled, type HotImportMeta } from '@pastweb/tools';
 import { reactive } from '@pastweb/tools/reactivity';
 import { MatchMedia } from '../util/MatchMedia';
 import {
@@ -11,7 +12,10 @@ import {
   useMounted,
   useRef,
 } from '../../src';
-import { getMediatorSignature, isHMREnabled } from '../../src/useMediator/utils';
+
+function getMediatorSignature<T>(mediator: T, meta: HotImportMeta): string {
+  return isHMREnabled(meta) ? getFunctionSignature(mediator) : '';
+}
 
 afterEach(() => {
   cleanup();

@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/react",
   "type": "module",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "React bindings for Pastweb: progressive framework utilities for routing, portals, API query hooks, SSR entries, slots, and reactive state.",
   "author": "Domenico Pasto",
   "license": "MIT",
@@ -53,7 +53,7 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
-    "@pastweb/tools": "^2.4.0",
+    "@pastweb/tools": "^2.5.0",
     "@reduxjs/toolkit": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -68,7 +68,7 @@
     }
   },
   "devDependencies": {
-    "@pastweb/tools": "^2.4.0",
+    "@pastweb/tools": "^2.5.0",
     "@reduxjs/toolkit": "^2.12.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -721,10 +721,6 @@
     "./useMediator/useMediator": {
       "import": "./dist/useMediator/useMediator.js",
       "require": "./dist/useMediator/useMediator.cjs"
-    },
-    "./useMediator/utils": {
-      "import": "./dist/useMediator/utils.js",
-      "require": "./dist/useMediator/utils.cjs"
     },
     "./useMounted": {
       "import": "./dist/useMounted/index.js",

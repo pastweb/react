@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { QUERY_CACHE_CONTEXT_KEY } from '@pastweb/tools/api/createQueryCache/constnts';
+import { QUERY_CACHE_CONTEXT_KEY } from '@pastweb/tools/api/createQueryCache/constants';
 import { useGlobalContext } from '../../../GlobalContext/useGlobalContext';
 import { API_QUERY_CONTEXT } from '../../constants';
 import type { QueryCache } from '@pastweb/tools';

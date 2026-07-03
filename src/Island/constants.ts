@@ -1,13 +1,9 @@
-import { createContext } from 'react';
-import type { IslandProps } from './types';
+import { DEFAULT_ISLAND_PROPS, ISLAND_CONTEXT_KEY } from '@pastweb/tools';
+import type { IslandDefaultProps as IDP } from './types';
 
-export const DEFAULT_PROPS: Partial<IslandProps> = {
-  client: 'visible',
-  idleTimeout: 5000,
-};
+export { ISLAND_CONTEXT_KEY };
 
 /**
- * Context used by nested components to know whether they are rendered inside an
- * island hydration boundary.
+ * React Island defaults adapted from the framework-agnostic tools contract.
  */
-export const ISLAND_CONTEXT = createContext(false);
+export const DEFAULT_PROPS: Pick<IDP, 'client' | 'idleTimeout'> = DEFAULT_ISLAND_PROPS;

@@ -11,6 +11,8 @@ export type GenericEntry = Entry<any> & {
  *
  * Hydration is inferred from the nearest `Island` context. Render the adapter
  * inside an `Island` when the nested entry should hydrate server markup.
+ * The component forwards its host `div` ref to consumers while keeping the same
+ * element for entry mounting.
  */
 export interface EntryAdapterProps {
   /**

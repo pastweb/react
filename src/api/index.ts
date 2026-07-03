@@ -4,7 +4,7 @@ export { reuseMutation, reuseQuery, useApiQueryCache, useInfiniteQuery, useMutat
 
 export type { ApiCacheOptions } from './installApiCache';
 export type { ApiQueryProviderProps } from './ApiQueryProvider';
-export type { ApiQuerySnapshot, QueryKey } from './types';
+export type { ApiQuerySnapshot } from './types';
 export type {
   InfiniteQueryConfig,
   InfiniteQueryInfo,

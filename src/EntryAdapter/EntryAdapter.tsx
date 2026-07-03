@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { isServer } from '@pastweb/tools/envs';
 import { isEntry } from '@pastweb/tools/createEntry';
 import { useBeforeMount } from '../useBeforeMount';
 import { useBeforeUnmount } from '../useBeforeUnmount';
 import { useIsland } from '../Island';
+import { setRef } from '../setRef';
 import { renderServerEntryAdapter } from './utils';
 import type { EntryAdapterProps, GenericEntry } from './types';
 
@@ -38,11 +39,11 @@ import type { EntryAdapterProps, GenericEntry } from './types';
  * />
  * ```
  */
-export function EntryAdapter(props: EntryAdapterProps) {
+export const EntryAdapter = forwardRef<HTMLDivElement, EntryAdapterProps>(function EntryAdapter(props, forwardedRef) {
   const { entry: _entry, ssrEntry: _ssrEntry, ...rest } = props;
   const isIsland = useIsland();
   const entry = useRef<GenericEntry>(_entry());
-  const entryElement = useRef<HTMLElement | null>(null);
+  const entryElement = useRef<HTMLDivElement | null>(null);
 
   if (isServer) {
     return renderServerEntryAdapter(entry.current, _ssrEntry, rest);
@@ -56,17 +57,18 @@ export function EntryAdapter(props: EntryAdapterProps) {
     entry.current.mergeOptions({ initData: { ...rest } });
   });
 
-  const ref = useCallback((node: HTMLElement | null) => {
+  const ref = useCallback((node: HTMLDivElement | null) => {
     if (node) {
       entryElement.current = node;
-      entry.current.setEntryElement(entryElement.current as HTMLElement);
+      entry.current.setEntryElement(entryElement.current);
       entry.current.emit('mount', { hydrate: isIsland });
     }
-  }, [isIsland]);
+    setRef(forwardedRef, node);
+  }, [forwardedRef, isIsland]);
 
   useEffect(() => entry.current.emit('update', rest), [rest]);
 
   useBeforeUnmount(() => queueMicrotask(() => entry.current.emit('unmount')));
 
   return <div ref={ref} style={{ display: 'contents' }} />;
-}
+});

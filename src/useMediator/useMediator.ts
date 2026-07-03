@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { createMediatorContextUtils, noop, effect, reactive, update } from '@pastweb/tools';
+import { createMediatorContextUtils, noop, effect, reactive, update, isHMREnabled, getFunctionSignature } from '@pastweb/tools';
 import { getContext, setContext } from '../GlobalContext';
 import { useBeforeMount } from '../useBeforeMount';
 import { useRef } from '../useRef';
-import { isHMREnabled, getMediatorSignature } from './utils';
 import type { ContextUtils, Mediator, MediatorFunction, Props, Extras } from './types';
 
 /**
@@ -39,7 +38,7 @@ export const useMediator = <T>(mediator: MediatorFunction<T>, props: Props = {},
 
   function init() {
     storedMediator.value = mediator;
-    storedMediatorSignature.value = getMediatorSignature(mediator);
+    storedMediatorSignature.value = getFunctionSignature(mediator);
     storedProps.value = reactive({ ...restProps });
     storedExtras.value = reactive({ ...extras });
 
@@ -55,7 +54,7 @@ export const useMediator = <T>(mediator: MediatorFunction<T>, props: Props = {},
   });
 
   if (!isInit.value) {
-    if (hmr && storedMediatorSignature.value !== getMediatorSignature(mediator)) {
+    if (hmr && storedMediatorSignature.value !== getFunctionSignature(mediator)) {
       init();
       updateState.value({ ...(m.value.state || {}) });
     } else {

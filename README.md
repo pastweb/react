@@ -232,7 +232,7 @@ const queryCache = createQueryCache();
 
 Bridges any tools reactive query-like state into React rendering. The state is created once, and React re-renders when the enumerable fields from the first created state change.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function reuseQuery<TState extends Record<PropertyKey, any>>(
@@ -260,7 +260,7 @@ function useUsers() {
 
 Alias of `reuseQuery` for mutation-style state. It uses the same implementation, but makes custom mutation hooks easier to read.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function reuseMutation<TState extends Record<PropertyKey, any>>(
@@ -284,7 +284,7 @@ function useSaveUser() {
 
 React wrapper for `@pastweb/tools` `useQuery`.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useQuery<T>(config: QueryConfig<T>): QueryInfo<T>
@@ -314,7 +314,7 @@ function Users() {
 
 React wrapper for `@pastweb/tools` `useMutation`.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useMutation<T>(config: MutationConfig<T>): MutationInfo<T>
@@ -335,7 +335,7 @@ const saveUser = useMutation({
 
 React wrapper for multiple tools queries.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useQueries<T extends readonly QueryConfig<any>[]>(
@@ -357,7 +357,7 @@ const dashboard = useQueries({
 
 React wrapper for paginated tools queries.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useInfiniteQuery<TPage, TPageParam = unknown>(
@@ -589,7 +589,7 @@ React hook for managing and tracking color scheme changes.
 
 This hook mirrors `useColorScheme` from `@pastweb/tools`: pass options to create an internal `MatchScheme`, or pass a pre-created `MatchScheme` as the second argument. It listens for changes in the system's preferred color scheme and user-selected mode, then re-renders the React component.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useColorScheme(
@@ -791,7 +791,7 @@ Props
 
 `useLocation` returns the current router location and re-renders when it changes.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useLocation(): Location
@@ -809,7 +809,7 @@ return <span>{location.pathname}</span>;
 
 `useNavigate` returns the router navigation function.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useNavigate(): (path: string, state?: any) => Promise<void>
@@ -827,7 +827,7 @@ await navigate('/dashboard', { from: 'login' });
 
 `usePaths` returns the router paths filtered by the tools `filterRoutes` helper.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function usePaths(filter?: FilterDescriptor): Route[]
@@ -843,7 +843,7 @@ const adminPaths = usePaths({ role: 'admin' });
 
 `useRoute` returns the selected route at the current `RouterView` depth.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useRoute(): SelectedRoute
@@ -861,7 +861,7 @@ return <h1>{currentRoute.path}</h1>;
 
 `useRouteDepth` returns the current router view depth. The installed root value is `-1`.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useRouteDepth(): number
@@ -877,7 +877,7 @@ const depth = useRouteDepth();
 
 `useRouter` returns the installed tools `ViewRouter`.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useRouter(): ViewRouter
@@ -895,7 +895,7 @@ await router.navigate('/home');
 
 `useRouterLink` returns the descriptor from `router.getRouterLink` and re-renders when the active route changes.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useRouterLink(props: RouterLinkOptions): RouterLink
@@ -917,7 +917,7 @@ const link = useRouterLink({
 
 `useSearchParams` returns the current `URLSearchParams` and the router setter.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useSearchParams(): {
@@ -942,7 +942,7 @@ setSearchParams(next);
 
 `useMatchDevice` tracks device matches with the tools `createMatchDevice` helper.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useMatchDevice(config: DevicesConfig): DevicesResult
@@ -1177,7 +1177,7 @@ import { portalAnchors } from '@/lib/portals';
 
 The `usePortalAnchors` hook reads the installed portal anchor ids.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function usePortalAnchors<T>(): T
@@ -1204,7 +1204,7 @@ function PortalTargets() {
 
 The `usePortals` hook reads the installed portal descriptor. Use a local type to keep portal paths typed in application code.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function usePortals<T>(): T
@@ -1234,7 +1234,7 @@ The `usePortal` hook creates the handler consumed by the `Portal` component. The
 
 Calls made before the `Portal` component finishes wiring itself are replayed once the component is ready.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function usePortal(): PortalHandler & { isReady: () => void }
@@ -1380,7 +1380,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 The returned `Slot` component renders the default slot when no name is provided, renders fallback children when a named slot is missing, supports prop injection for element/function slot content, and supports custom mapping.
 
-#### Syntax
+> #### Syntax
 
 ```ts
 function useSlots(defaultNodes: ReactNode): {
@@ -1865,4 +1865,4 @@ function Button(props: Partial<ButtonProps>) {
 
 ## License
 
-This project is licensed under the MIT License.
+[MIT](./LICENSE) License (c) 2026 [Domenico Pasto](https://github.com/pastweb)

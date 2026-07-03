@@ -1,11 +1,13 @@
-import { useContext } from 'react';
-import { ISLAND_CONTEXT } from './constants';
+import { getContext } from '../GlobalContext';
+import { ISLAND_CONTEXT_KEY } from './constants';
 
 /**
  * Returns whether the current component is rendered inside an {@link Island}.
  *
  * Entry adapters use this signal to hydrate nested entries only when they are
  * mounted as part of an island hydration boundary.
+ * The local React Island provider is used first; when it is absent, the hook
+ * reads `ISLAND_CONTEXT_KEY` from `GlobalContext`, matching the portal helpers.
  *
  * @returns `true` inside an `Island`, otherwise `false`.
  *
@@ -19,5 +21,5 @@ import { ISLAND_CONTEXT } from './constants';
  * ```
  */
 export function useIsland(): boolean {
-  return useContext(ISLAND_CONTEXT);
+  return !!getContext<boolean>(ISLAND_CONTEXT_KEY);
 }

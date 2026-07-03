@@ -30,7 +30,6 @@ export type {
   QueryFetchStatus,
   QueryInfo,
   QueryStatus,
-  QueryKey,
   RetryDelayOption,
   RetryOption,
   UseQueriesConfig,

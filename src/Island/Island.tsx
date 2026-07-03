@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
+import { GlobalContext } from '../GlobalContext';
 import { withDefaultProps } from '../withDefaultProps';
-import { DEFAULT_PROPS, ISLAND_CONTEXT } from './constants';
+import { DEFAULT_PROPS, ISLAND_CONTEXT_KEY } from './constants';
 import type { IslandProps, IslandDefaultProps } from './types';
 
 export function Island(props: IslandProps) {
@@ -26,9 +27,9 @@ export function Island(props: IslandProps) {
 
       rootRef.current = hydrateRoot(
         element,
-        <ISLAND_CONTEXT.Provider value>
+        <GlobalContext update={{ [ISLAND_CONTEXT_KEY]: true }}>
           {children}
-        </ISLAND_CONTEXT.Provider>,
+        </GlobalContext>,
         {
           onRecoverableError: err =>
             console.warn('[Island] recoverable error during hydration', err),
@@ -94,9 +95,9 @@ export function Island(props: IslandProps) {
       suppressHydrationWarning
       style={{ display: 'contents' }}
     >
-      <ISLAND_CONTEXT.Provider value>
+      <GlobalContext update={{ [ISLAND_CONTEXT_KEY]: true }}>
         {client === 'none' ? children : fallback || children}
-      </ISLAND_CONTEXT.Provider>
+      </GlobalContext>
     </div>
   );
 }

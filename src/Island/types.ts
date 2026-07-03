@@ -1,19 +1,19 @@
 import type { ReactNode } from 'react';
+import type { IslandDefaultProps as IDP, IslandProps as IP } from '@pastweb/tools';
 
-export type ClientStrategy =
-  | 'load'
-  | 'idle'
-  | 'visible'
-  | 'media'
-  | 'none';
+export type { ClientStrategy } from '@pastweb/tools';
 
 /**
- * Props for {@link Island}.
+ * Props for the React {@link Island} component.
+ *
+ * React Island uses the shared `@pastweb/tools` island contract for hydration
+ * strategies, media queries, idle timeout, and `islandId`, then specializes the
+ * renderable values as React nodes.
  *
  * `Island` only controls when a server-rendered subtree is hydrated. It does
- * not receive provider props and does not install API/router/portal context by
- * itself. When an island needs providers, render a component that already
- * includes them:
+ * not receive provider props and does not install API, router, or portal
+ * context by itself. When an island needs providers, render a component that
+ * already includes them.
  *
  * Components inside an island can call `useIsland()` to detect the island
  * boundary. `EntryAdapter` uses that context automatically to hydrate nested
@@ -34,30 +34,21 @@ export type ClientStrategy =
  * </Island>
  * ```
  */
-export interface IslandProps {
-  /** Which hydration strategy to use */
-  client?: ClientStrategy;
-  /** Media query for 'media' strategy (e.g. '(min-width: 1024px)') */
-  media?: string;
-  /** Children = what to render both on server & client */
+export interface IslandProps extends Omit<IP, 'fallback'> {
+  /** What to render both on the server and client. */
   children: ReactNode;
-  /** Optional: fallback content shown before hydration (rarely needed) */
-  fallback?: ReactNode;
-  /**
-   * Maximum delay in milliseconds before forcing hydration when using client="idle".
-   * Only used when requestIdleCallback is available.
-   * @default 5000
-   */
-  idleTimeout?: number;
-  /** Stable id exposed as `data-island-id` for external orchestration. */
-  islandId?: string;
-};
 
-export interface IslandDefaultProps {
-  client: ClientStrategy;
-  media?: string;
-  children: ReactNode;
+  /** Optional React fallback content shown before hydration. */
   fallback?: ReactNode;
-  idleTimeout: number;
-  islandId?: string;
-};
+}
+
+/**
+ * React Island props after defaults from `@pastweb/tools` have been applied.
+ */
+export interface IslandDefaultProps extends Omit<IDP, 'fallback'> {
+  /** What to render both on the server and client. */
+  children: ReactNode;
+
+  /** Optional React fallback content shown before hydration. */
+  fallback?: ReactNode;
+}

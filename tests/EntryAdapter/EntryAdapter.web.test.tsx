@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 import { act, render, screen, waitFor, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest'; 
 import { createEntry } from '../../src/createEntry';
@@ -24,6 +24,28 @@ describe('EntryAdapter (Client)', () => {
     );
 
     expect(screen.getByTestId('entry-content')).toBeInTheDocument();
+  });
+
+  it('forwards the host element to an object ref', () => {
+    const mockEntry = createEntry();
+    mockEntry.mount = vi.fn();
+    mockEntry.unmount = vi.fn();
+    const ref = createRef<HTMLDivElement>();
+
+    render(<EntryAdapter ref={ref} entry={() => mockEntry} />);
+
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('forwards the host element to a callback ref', () => {
+    const mockEntry = createEntry();
+    mockEntry.mount = vi.fn();
+    mockEntry.unmount = vi.fn();
+    const ref = vi.fn();
+
+    render(<EntryAdapter ref={ref} entry={() => mockEntry} />);
+
+    expect(ref).toHaveBeenCalledWith(expect.any(HTMLDivElement));
   });
 
 
