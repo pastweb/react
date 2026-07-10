@@ -4,7 +4,7 @@ import { registerAsyncTask } from '@pastweb/tools/ssrUtils';
 import { Render } from '../Render';
 import { useBeforeMount } from '../useBeforeMount';
 import { useRef } from '../useRef';
-import { loadDependency, normalizeDependency } from './utils';
+import { loadDependency } from './utils';
 import type { Component } from '../createEntry';
 import type { AsyncComponentProps, Dependency, DependencyInfo } from './types';
 
@@ -91,7 +91,7 @@ function clientSide(props: AsyncComponentProps): ReactElement | null {
     if (dependencies) {
       dependencies.forEach(async (dep: Dependency | DependencyInfo, i: number) => {
         try {
-          await loadDependency(normalizeDependency(dep));
+          await loadDependency(dep);
         } catch (e) {
           console.error(`the dependency with the index ${i} has an error:`, e);
         } finally {
@@ -135,9 +135,8 @@ function serverSide(props: AsyncComponentProps): ReactElement | null {
   registerAsyncTask(async () => {
     // 1. Load dependencies
     if (dependencies && dependencies.length > 0) {
-      const normalized = dependencies.map(normalizeDependency);
       await Promise.all(
-        normalized.map(async (dep, index) => {
+        dependencies.map(async (dep, index) => {
           try {
             await loadDependency(dep);
           } catch (err) {

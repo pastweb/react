@@ -1,30 +1,7 @@
 # Changelog
 
-- Migrated the package build and test setup to `tsdown`, Vite, and Vitest, replacing the previous Rollup/Jest-era configuration and legacy `__tests__` layout.
-- Updated package metadata, keywords, and development dependencies, including latest published `@pastweb/tools`.
-- Reorganized the README into Core, API, Async, Routing, Browser, Element, Hook, and Utility categories with normalized `Syntax` and `**Example:**` formatting.
-- Documented `GlobalContext`, `getContext`, and `setContext` with TSDoc and README examples.
-- Made `useGlobalContext` internal-only by removing it from source exports and public documentation.
-- Added browser tests for installer-provided values, nested provider merging, reactive context updates, and duplicate installer-key errors.
-- Added React API/query integration: `ApiQueryProvider`, `installApiCache`, `useApiQueryCache`, `reuseQuery`, `reuseMutation`, `useQuery`, `useMutation`, `useQueries`, and `useInfiniteQuery`.
-- Documented the current portals installer, hooks, and `Portal` component flow with README examples.
-- Added browser tests for portal context installation, context reads, and `Portal` handler wiring.
-- Removed the stale `EntryDescriptor` React export and fixed `Portal` close handling.
-- Added `EntryAdapter`, `Island`, and island context support for partial hydration and SSR/client entry composition.
-- Documented the `Render` component and added node tests for primitive, element, and component content.
-- Replaced the old `renderContent` utility with the `Render` component export.
-- Updated router hooks/components for the latest tools `ViewRouter` reactive API.
-- Documented `installRouter`, `RouterView`, `RouterLink`, and router hooks with current README examples.
-- Added browser tests for router installation, reactive hook updates, generated links, search params, and `RouterView`.
-- Replaced `createUseColorScheme` with the React `useColorScheme` hook aligned with `@pastweb/tools`.
-- Documented `setRef` with forwarded-ref examples and added node tests for object refs, callback refs, ignored refs, and clearing refs.
-- Documented lifecycle hooks, `useMatchDevice`, `useMediator`, `useRef`, and `withDefaultProps` with focused examples.
-- Added browser tests for lifecycle hooks, forced rendering, device matching, mediator rendering, and the `useRef` value alias.
-- Added development HMR handling to `useMediator` for Vite, Webpack, and Rspack import-meta HMR APIs, with mediator source-signature checks to support inline mediators without resetting on normal rerenders.
-- Added node tests for `withDefaultProps` and made the wrapper local to avoid importing the tools root.
-- Added optional `RouterProvider` and `PortalsProvider` components for local provider-style usage without explicit `GlobalContext`.
-- Updated router and portal hooks to prefer dedicated provider contexts while preserving `GlobalContext` installer compatibility.
-- Refined `Slots` internals with symbol markers, safer slot rendering, function slot support, and focused browser tests without changing the public usage pattern.
-- Added nested slot test coverage and README examples for composing slot-aware components with independent slot scopes.
-- Replaced `useMicroStore` with `reuseMicroStore` and added a React `createMicroStore` factory that wraps tools micro-stores.
-- Updated `WaitFor` to use the current `@pastweb/tools/envs` server detection instead of the removed `@pastweb/tools/isSSR` subpath.
+- Removed `normalizeDependency` from the public React package exports and AsyncComponent utility barrels.
+- Kept dependency normalization internal to `loadDependency`, allowing `AsyncComponent` to continue accepting dependency functions, promises, and `DependencyInfo` objects.
+- Moved the `AsyncComponent` README documentation into the Element functions section and removed the public `normalizeDependency` documentation.
+- Updated the AsyncComponent server tests to assert the supported internal dependency loading flow without mocking `normalizeDependency`.
+- Added `reuseMatchDevice` to bridge tools reactive device state into React rendering.

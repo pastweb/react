@@ -30,10 +30,10 @@ The documentation is organized into the following major categories. Each section
 
 - **Core functions** — `GlobalContext`, installers, and context hooks for sharing tools-powered services in React.
 - **API functions** — Query cache provider, query cache installer, and React wrappers around tools API hooks.
-- **Async functions** — Async component loading, dependency normalization, async Redux store helpers, and color-scheme hooks.
+- **Async functions** — Async Redux store helpers and color-scheme hooks.
 - **Routing** — React integration for `createViewRouter`.
 - **Browser functions** — Browser-aware hooks such as device matching.
-- **Element functions** — Entry rendering, islands, portals, and UI composition helpers.
+- **Element functions** — Async components, entry rendering, islands, portals, and UI composition helpers.
 - **Hook functions** — General React lifecycle and mediator hooks.
 - **Utility functions** — Small React utilities such as `Render` and `setRef`.
 
@@ -55,8 +55,6 @@ This project is distributed under the MIT licence.
   - [useQueries](#usequeries)
   - [useInfiniteQuery](#useinfinitequery)
 - [Async functions](#async-functions)
-  - [AsyncComponent](#asynccomponent)
-    - [normalizeDependency](#normalizedependency)
   - [createReduxAsyncStore](#createreduxasyncstore)
     - [ReduxProvider](#reduxprovider)
   - [useColorScheme](#usecolorscheme)
@@ -77,7 +75,9 @@ This project is distributed under the MIT licence.
     - [useSearchParams](#usesearchparams)
 - [Browser functions](#browser-functions)
   - [useMatchDevice](#usematchdevice)
+  - [reuseMatchDevice](#reusematchdevice)
 - [Element functions](#element-functions)
+  - [AsyncComponent](#asynccomponent)
   - [createEntry](#createentry)
   - [EntryAdapter](#entryadapter)
   - [Island](#island)
@@ -381,108 +381,6 @@ const posts = useInfiniteQuery({
 
 ---
 ## Async functions
-
-### `AsyncComponent`
-
-As a code base application can grow in complexity and quantity of code, this component helps to split your bundle using the [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) ES6 standard function for the component to be loaded as for its own dependencies if needed.
-
-Props
-
-* `component`: `() => Promise<any>`
- * the function which returns the component module Promise.
-* `dependencies`: `(Dependency | DependencyInfo)[]` _(optional)_
- * an array of dependencies to be loaded before the component rendering.
-* `fallback`: `ReactElement | null` _(optional)_
- * the placehoder component to be rendered waiting the the component and the dependencies a ready.
-
-**Example:**
-Immaging we want to load dynamically a react component and a redux reducer.
-We can extend our `AsyncComponent` as in the example below using the [injectReducer](https://redux.js.org/usage/code-splitting) function.
-
-**Example:**
-```tsx
-// @/react/components/Async.tsx
-import { useRef } from 'react';
-import { AsyncComponent, normalizeDependency } from '@pastweb/react';
-import { injectReducer } from '@/react/redux';
-import type { Dependency, DependencyInfo, ComponentModule } from '@pastweb/react';
-
-export interface ReducerInfo {
-  [reducerName: string]: Dependency | DependencyInfo;
-}
-
-export interface AsyncProps {
-  component:  () => Promise<ComponentModule>;
-  reducer?: ReducerInfo;
-};
-
-export function Async(props: AsyncProps) {
-  const { component, reducer, ...rest } = props;
-  const dep = useRef<undefined | DependencyInfo[]>(((reducer?: ReducerInfo): undefined | DependencyInfo[] => {
-    if (!reducer) return;
-
-    const [ reducerName ] = Object.keys(reducer);
-    const dependency = normalizeDependency(reducer[reducerName]);
-    
-    dependency.onSuccess = (reducer: any) => {
-      injectReducer(reducerName as string, reducer);
-    };
-
-    return [ dependency ];
-  })(reducer));
-
-  return (
-    <AsyncComponent
-      component={component}
-      dependencies={dep.current}
-      fallback={<div>Loading...</div>}
-      {...rest}
-    />
-  );
-}
-```
-
-Then we can use the `Async` component:
-
-**Example:**
-```tsx
-import { Async } from '@/react/components/Async';
-
-export function MyComponent() {
-  return (
-    <Async
-      component={() => import('@/react/components/MyAsyncComponent')}
-      reducer={{ myReducer: () => import('@/react/redux/myReducer') }}
-    />
-  );
-}
-```
-Below the detail of the [normalizeDependency](#normalizedependency) function.
-
----
-### `normalizeDependency`
-
-The `normalizeDependency` function standardizes a given dependency into a consistent `DependencyInfo` structure. This is particularly useful in scenarios where dependencies can be provided in multiple formats, such as functions, promises, or objects, and need to be normalized for consistent handling.
-
-> #### Syntax
-```typescript
-function normalizeDependency(dependency: Dependency | DependencyInfo): DependencyInfo;
-```
-
-Parameters
-
-* `dependency`: `Dependency | DependencyInfo`
-  * The dependency to be normalized. It can be either:
-    * A `Dependency`: A function that returns a promise or a promise directly.
-    * A `DependencyInfo`: An object containing detailed information about the dependency, including an optional exportName.
-
-Returns
-* `DependencyInfo`:
-  * An object containing the normalized dependency information. The `DependencyInfo` object includes:
-    * `dependency`: A promise representing the resolved dependency.
-    * `exportName`: A string indicating the name of the export from the module. If not provided, it defaults to `'default'`.
-
----
 
 ### `createReduxAsyncStore`
 
@@ -971,7 +869,80 @@ return devices.phone ? <MobileNav /> : <DesktopNav />;
 
 ---
 
+### `reuseMatchDevice`
+
+`reuseMatchDevice` bridges a reactive device state created by the tools `useMatchDevice` helper into React rendering.
+
+> #### Syntax
+
+```ts
+function reuseMatchDevice(matchDevice: DevicesResult): DevicesResult
+```
+
+**Example:**
+```tsx
+import { useMatchDevice as createToolsMatchDevice } from '@pastweb/tools';
+import { reuseMatchDevice } from '@pastweb/react';
+
+const deviceState = createToolsMatchDevice({
+  phone: { mediaQuery: '(max-width: 640px)' },
+});
+
+function Navigation() {
+  const { devices } = reuseMatchDevice(deviceState);
+
+  return devices.phone ? <MobileNav /> : <DesktopNav />;
+}
+```
+
+---
+
 ## Element functions
+
+### `AsyncComponent`
+
+`AsyncComponent` loads a React component with the [import()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import) function and can wait for optional dependencies before rendering. Use it for route-level code splitting, feature modules, or setup work such as loading reducers before the component appears.
+
+> #### Syntax
+
+```ts
+function AsyncComponent(props: AsyncComponentProps): ReactElement | null
+```
+
+Props
+
+* `component`: `() => Promise<ComponentModule>`
+  * The function that returns the component module promise.
+* `dependencies`: `(Dependency | DependencyInfo)[]` _(optional)_
+  * Dependencies to load before rendering the component.
+* `fallback`: `ReactElement | null` _(optional)_
+  * The element rendered while the component and dependencies are loading.
+
+**Example:**
+```tsx
+import { AsyncComponent } from '@pastweb/react';
+import { injectReducer } from '@/react/redux';
+
+export function ProductRoute() {
+  return (
+    <AsyncComponent
+      component={() => import('@/react/components/ProductDetails')}
+      dependencies={[
+        {
+          dependency: () => import('@/react/redux/productReducer'),
+          exportName: 'default',
+          onSuccess: reducer => {
+            injectReducer('product', reducer);
+          },
+        },
+      ]}
+      fallback={<div>Loading...</div>}
+    />
+  );
+}
+```
+
+---
 
 ### `createEntry`
 

@@ -3,7 +3,7 @@ import type { MatchDevicesResult } from '@pastweb/tools';
 export type { DevicesConfig, MatchDevicesResult } from '@pastweb/tools';
 
 /**
- * Result returned by {@link useMatchDevice}.
+ * Result returned by {@link useMatchDevice} and {@link reuseMatchDevice}.
  */
 export type DevicesResult = {
   /** Current match result for each configured device. */

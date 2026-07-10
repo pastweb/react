@@ -1,9 +1,15 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getFunctionSignature, isHMREnabled, type HotImportMeta } from '@pastweb/tools';
+import {
+  getFunctionSignature,
+  isHMREnabled,
+  useMatchDevice as createToolsMatchDevice,
+  type HotImportMeta,
+} from '@pastweb/tools';
 import { reactive } from '@pastweb/tools/reactivity';
 import { MatchMedia } from '../util/MatchMedia';
 import {
+  reuseMatchDevice,
   useBeforeMount,
   useBeforeUnmount,
   useForceUpdate,
@@ -127,6 +133,31 @@ describe('React hook utilities', () => {
       useMounted(() => {
         onMatch('phone', () => undefined);
       });
+
+      return <span>{devices.phone ? 'phone' : 'desktop'}</span>;
+    }
+
+    render(<Probe />);
+
+    expect(screen.getByText('desktop')).toBeInTheDocument();
+
+    matchMedia.useMediaQuery('(max-width: 640px)');
+
+    await waitFor(() => {
+      expect(screen.getByText('phone')).toBeInTheDocument();
+    });
+
+    matchMedia.destroy();
+  });
+
+  it('given a tools device state, when reuseMatchDevice renders, then it rerenders on device changes', async () => {
+    const matchMedia = new MatchMedia();
+    const deviceState = createToolsMatchDevice({
+      phone: { mediaQuery: '(max-width: 640px)' },
+    });
+
+    function Probe() {
+      const { devices } = reuseMatchDevice(deviceState);
 
       return <span>{devices.phone ? 'phone' : 'desktop'}</span>;
     }

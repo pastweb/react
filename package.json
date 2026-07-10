@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/react",
   "type": "module",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "React bindings for Pastweb: progressive framework utilities for routing, portals, API query hooks, SSR entries, slots, and reactive state.",
   "author": "Domenico Pasto",
   "license": "MIT",
@@ -701,6 +701,10 @@
     "./useMatchDevice": {
       "import": "./dist/useMatchDevice/index.js",
       "require": "./dist/useMatchDevice/index.cjs"
+    },
+    "./useMatchDevice/reuseMatchDevice": {
+      "import": "./dist/useMatchDevice/reuseMatchDevice.js",
+      "require": "./dist/useMatchDevice/reuseMatchDevice.cjs"
     },
     "./useMatchDevice/types": {
       "import": "./dist/useMatchDevice/types.js",

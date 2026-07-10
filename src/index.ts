@@ -1,4 +1,4 @@
-export { AsyncComponent, normalizeDependency } from './AsyncComponent';
+export { AsyncComponent } from './AsyncComponent';
 export type { AsyncComponentProps, Dependency, DependencyInfo, ComponentModule } from './AsyncComponent';
 
 export { computed } from './computed';
@@ -102,7 +102,7 @@ export { useBeforeUnmount } from './useBeforeUnmount';
 
 export { useForceUpdate } from './useForceUpdate';
 
-export { useMatchDevice } from './useMatchDevice';
+export { reuseMatchDevice, useMatchDevice } from './useMatchDevice';
 export type { DevicesConfig, DevicesResult } from './useMatchDevice';
 
 export { useMediator } from './useMediator';

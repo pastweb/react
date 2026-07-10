@@ -1,1 +1,1 @@
-export { loadDependency, normalizeDependency } from './utils';
+export { loadDependency } from './utils';

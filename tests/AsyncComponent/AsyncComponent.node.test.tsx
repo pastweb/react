@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { AsyncComponent, type AsyncComponentProps } from '../../src/AsyncComponent';
-import { loadDependency, normalizeDependency } from '../../src/AsyncComponent/utils';
+import { loadDependency } from '../../src/AsyncComponent/utils';
 
 interface AsyncProps extends AsyncComponentProps {
   name?: string;
@@ -27,7 +27,6 @@ vi.mock('@pastweb/tools/ssrUtils', () => ({
 
 vi.mock('../../src/AsyncComponent/utils', () => ({
   loadDependency: vi.fn(() => Promise.resolve()),
-  normalizeDependency: vi.fn((dep) => dep),
 }));
 
 describe('AsyncComponent (server side)', () => {
@@ -76,7 +75,6 @@ describe('AsyncComponent (server side)', () => {
 
     expect(renderToString(Async(props))).toContain('Hello SSR');
 
-    expect(normalizeDependency).toHaveBeenCalledTimes(2);
     expect(loadDependency).toHaveBeenCalledTimes(2);
 
     expect(loadDependency).toHaveBeenCalledWith(dep1);
