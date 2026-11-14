@@ -1,4 +1,4 @@
-import { useInfiniteQuery as createToolsInfiniteQuery } from '@pastweb/tools/api/hooks/useInfiniteQuery';
+import { setAsInfiniteQuery, useInfiniteQuery as createToolsInfiniteQuery } from '@pastweb/tools';
 import { reuseQuery } from '../reuseQuery';
 import type {
   InfiniteQueryConfig,
@@ -26,5 +26,7 @@ import type {
 export function useInfiniteQuery<TPage, TPageParam = unknown>(
   config: InfiniteQueryConfig<TPage, TPageParam>,
 ): InfiniteQueryInfo<TPage, TPageParam> {
-  return reuseQuery(() => createToolsInfiniteQuery(config));
+  const query = reuseQuery(() => createToolsInfiniteQuery(config));
+  setAsInfiniteQuery(query);
+  return query;
 }

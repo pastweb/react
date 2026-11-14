@@ -1,4 +1,4 @@
-import { useQuery as createToolsQuery } from '@pastweb/tools/api/hooks/useQuery';
+import { setAsQuery, useQuery as createToolsQuery } from '@pastweb/tools';
 import { reuseQuery } from '../reuseQuery';
 import type { QueryConfig, QueryInfo } from '@pastweb/tools/api/hooks/useQuery';
 
@@ -22,5 +22,7 @@ import type { QueryConfig, QueryInfo } from '@pastweb/tools/api/hooks/useQuery';
  * ```
  */
 export function useQuery<T>(config: QueryConfig<T>): QueryInfo<T> {
-  return reuseQuery(() => createToolsQuery(config));
+  const query = reuseQuery(() => createToolsQuery(config));
+  setAsQuery(query);
+  return query;
 }
