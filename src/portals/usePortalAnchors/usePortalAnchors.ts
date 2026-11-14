@@ -1,7 +1,5 @@
-import { useContext } from 'react';
 import { PORTAL_ANCHORS_CONTEXT_KEY } from '@pastweb/tools';
 import { getContext } from '../../GlobalContext';
-import { PORTAL_ANCHORS_REACT_CONTEXT } from '../constants';
 
 /**
  * Reads the portal anchor ids installed by {@link installPortals}.
@@ -18,8 +16,5 @@ import { PORTAL_ANCHORS_REACT_CONTEXT } from '../constants';
  * ```
  */
 export function usePortalAnchors<T>(): T {
-  const providerAnchors = useContext(PORTAL_ANCHORS_REACT_CONTEXT);
-  const globalAnchors = getContext<T>(PORTAL_ANCHORS_CONTEXT_KEY);
-
-  return (providerAnchors ?? globalAnchors) as T;
+  return getContext<T>(PORTAL_ANCHORS_CONTEXT_KEY);
 }

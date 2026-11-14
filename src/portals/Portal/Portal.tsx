@@ -1,4 +1,4 @@
-import { cloneElement, useEffect, useState, type ReactElement } from 'react';
+import { cloneElement, useEffect, type ReactElement } from 'react';
 import { isPortalHandler, select, type PortalHandler } from '@pastweb/tools';
 import { useRef } from '../../useRef';
 // import { useMounted } from '../../useMounted';
@@ -28,7 +28,7 @@ import type { PortalProps, Portals } from './types';
  * ```
  */
 export function Portal(props: PortalProps) {
-  const { children, path, use } = props;
+  const { children, path, use, manager } = props;
 
   if (!isPortalHandler(use)) {
     throw Error(
@@ -38,26 +38,29 @@ export function Portal(props: PortalProps) {
 
   const portals = usePortals() as Portals;
   const handler = useRef<PortalHandler | null>(null);
-  const [entryId, setEntryId] = useState<string | false>(false);
-  const component = useRef<ReactElement>(cloneElement(children));
+  const entryId = useRef<string | false>(false);
+  const component = useRef<ReactElement>(manager ? cloneElement<any>(children, { manager }) : children);
 
   useEffect(() => {
-    component.value = cloneElement(children);
-  }, [children]);
+    component.value = manager ? cloneElement<any>(children, { manager }) : children;
+  }, [children, manager]);
 
   useEffect(() => {
     if (!use) return;
 
     use.open = () => {
-      if (entryId) return entryId;
+      if (entryId.value) return entryId.value;
 
       const createHandler = select(portals, path);
       handler.value = createHandler(component.value);
       const h = handler.value as PortalHandler;
 
+      let openedId: string | false = false;
+
       h.onRemove(() => {
+        if (openedId && manager) manager.unregister(openedId);
         use.id = false;
-        setEntryId(false);
+        entryId.value = false;
       });
 
       use.update = h.update;
@@ -65,14 +68,22 @@ export function Portal(props: PortalProps) {
       use.remove = () => h.remove();
 
       const id = h.open();
+      openedId = id;
       use.id = id;
-      setEntryId(id);
+      entryId.value = id;
+
+      if (id && manager) {
+        manager.register({
+          id,
+          requestClose: () => h.close(),
+        });
+      }
 
       return id;
     };
 
     use.isReady();
-  }, [use]);
+  }, [manager, path, portals, use]);
 
   return null;
 }

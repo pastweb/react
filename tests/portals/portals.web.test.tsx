@@ -1,8 +1,9 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   PORTALS_CONTEXT_KEY,
   PORTAL_ANCHORS_CONTEXT_KEY,
+  createWindowManager,
   type PortalHandler,
 } from '@pastweb/tools';
 import { GlobalContext } from '../../src/GlobalContext';
@@ -166,5 +167,58 @@ describe('portals', () => {
     expect(selectedHandler.remove).toHaveBeenCalled();
 
     removeCallbacks.forEach(fn => fn());
+  });
+
+  it('given an installed manager, when a portal opens and removes, then it registers and unregisters the entry', async () => {
+    const manager = createWindowManager();
+    const removeCallbacks: Array<() => void> = [];
+    const selectedHandler = {
+      id: false,
+      open: vi.fn(() => 'entry-1'),
+      update: vi.fn(() => true),
+      close: vi.fn(),
+      remove: vi.fn(() => true),
+      onRemove: vi.fn((fn: () => void) => removeCallbacks.push(fn)),
+      getPortalElement: vi.fn(() => document.createElement('div')),
+      portal: {},
+    } as unknown as PortalHandler;
+
+    function Trigger() {
+      const modal = usePortal();
+
+      return (
+        <>
+          <button onClick={() => modal.open()}>Open</button>
+          <Portal path="modal" use={modal} manager={manager}>
+            <div>Portal content</div>
+          </Portal>
+        </>
+      );
+    }
+
+    render(
+      <GlobalContext update={{
+        [PORTALS_CONTEXT_KEY]: { modal: vi.fn(() => selectedHandler) },
+      }}>
+        <Trigger />
+      </GlobalContext>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+
+    await waitFor(() => {
+      expect(manager.state.windows).toHaveLength(1);
+      expect(manager.state.windows[0]?.id).toBe('entry-1');
+    });
+
+    act(() => {
+      manager.close('entry-1');
+    });
+    expect(selectedHandler.close).toHaveBeenCalled();
+
+    act(() => {
+      removeCallbacks.forEach(fn => fn());
+    });
+    expect(manager.state.windows).toHaveLength(0);
   });
 });

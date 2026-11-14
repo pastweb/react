@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { PortalHandler } from '@pastweb/tools';
+import type { PortalHandler, WindowManager } from '@pastweb/tools';
 import type { Portal } from '../types';
 
 export interface PortalProps {
@@ -9,6 +9,8 @@ export interface PortalProps {
   path: string;
   /** Handler returned by `usePortal`. */
   use: PortalHandler & { isReady: () => void };
+  /** Optional application window manager used to register this portal entry. */
+  manager?: WindowManager;
 };
 
 export interface Portals { [name: string]: Portal | Portals };
