@@ -16,8 +16,8 @@ importers:
         version: 19.2.8(react@19.2.8)
     devDependencies:
       '@pastweb/tools':
-        specifier: file:../tools
-        version: file:../tools(@toon-format/toon@4.1.1)(axios@1.19.0)(clsx@2.1.1)(history@5.3.0)
+        specifier: ^2.7.0
+        version: 2.7.0(@toon-format/toon@4.1.1)(axios@1.19.0)(clsx@2.1.1)(history@5.3.0)
       '@reduxjs/toolkit':
         specifier: ^2.12.0
         version: 2.12.0(react-redux@9.3.0(@types/react@19.2.18)(react@19.2.8)(redux@5.0.1))(react@19.2.8)
@@ -112,8 +112,8 @@ packages:
   '@oxc-project/types@0.143.0':
     resolution: {integrity: sha512-u6JZdLBTLotrNC9Vd6vPssINdzcCzleKAH6EJKImQb7GtYvX5keN2dxkoK44stCc4tffE6QQRtZTXVSzsLUlWA==}
 
-  '@pastweb/tools@file:../tools':
-    resolution: {directory: ../tools, type: directory}
+  '@pastweb/tools@2.7.0':
+    resolution: {integrity: sha512-6obNuuGycOzybeyo8GmUWZMfPhpZbkxcaRB4PiV3zosZewxv5xSmt7RP6ddZ4Q3EW4U1Zfx2YU7TtfJ9y19tlQ==}
     peerDependencies:
       '@toon-format/toon': '*'
       '@urql/core': ^6.0.3
@@ -1385,7 +1385,7 @@ snapshots:
 
   '@oxc-project/types@0.143.0': {}
 
-  '@pastweb/tools@file:../tools(@toon-format/toon@4.1.1)(axios@1.19.0)(clsx@2.1.1)(history@5.3.0)':
+  '@pastweb/tools@2.7.0(@toon-format/toon@4.1.1)(axios@1.19.0)(clsx@2.1.1)(history@5.3.0)':
     dependencies:
       '@toon-format/toon': 4.1.1
       axios: 1.19.0

@@ -69,7 +69,7 @@
     }
   },
   "devDependencies": {
-    "@pastweb/tools": "file:../tools",
+    "@pastweb/tools": "^2.7.0",
     "@reduxjs/toolkit": "^2.12.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
