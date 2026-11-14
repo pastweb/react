@@ -7,6 +7,10 @@
     "moduleDetection": "force",
     "module": "preserve",
     "moduleResolution": "bundler",
+    "paths": {
+      "@pastweb/tools": ["../tools/src/index.ts"],
+      "@pastweb/tools/*": ["../tools/src/*"]
+    },
     "resolveJsonModule": true,
     "types": [],
     "declaration": true,

@@ -1,5 +1,8 @@
-export { AsyncComponent } from './AsyncComponent';
+export { AsyncComponent, normalizeDependency } from './AsyncComponent';
 export type { AsyncComponentProps, Dependency, DependencyInfo, ComponentModule } from './AsyncComponent';
+
+export { Remote } from './Remote';
+export type { RemoteDependency, RemoteProps } from './Remote';
 
 export { computed } from './computed';
 
@@ -40,7 +43,7 @@ export type {
 export { createEntry, createServerEntry } from './createEntry';
 export type { ReactEntry, ReactEntryOptions, Component, MountOptions } from './createEntry';
 
-export { useColorScheme } from './useColorScheme';
+export { reuseColorScheme, useColorScheme } from './useColorScheme';
 
 export { EntryAdapter } from './EntryAdapter';
 export type { EntryAdapterProps } from './EntryAdapter';
@@ -94,7 +97,14 @@ export type {
 export { setRef } from './setRef';
 
 export { isSlot, isTemplate, Slots, useSlots, Template } from './Slots';
-export type { SlotProps, SlotsProps, TemplateProps } from './Slots';
+export type {
+  SlotContent,
+  SlotProps,
+  SlotsMap,
+  SlotsProps,
+  TemplateProps,
+  UseSlotsResult,
+} from './Slots';
 
 export { useBeforeMount } from './useBeforeMount';
 
@@ -117,13 +127,21 @@ export type {
   ReactMicroStore,
   ReactMicroStoreSelector,
   ReactUseMicroStore,
+  ReuseMicroStoreHook,
+  ReuseMicroStoreResult,
   Selector,
   UseMicroStore,
-  ReuseMicroStoreResult,
 } from './createMicroStore';
 
 export { useMounted } from './useMounted';
 
-export { useRef } from './useRef';
+export { useRef, type RefObject } from './useRef';
 
 export { withDefaultProps } from './withDefaultProps';
+
+export {
+  installWindowManager,
+  WindowManagerProvider,
+  useWindowManager,
+} from './windowManager';
+export type { WindowManagerOptions, WindowManagerProviderProps } from './windowManager';

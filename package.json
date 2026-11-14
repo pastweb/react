@@ -57,7 +57,8 @@
     "@reduxjs/toolkit": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-redux": "*"
+    "react-redux": "*",
+    "redux": "*"
   },
   "peerDependenciesMeta": {
     "@reduxjs/toolkit": {
@@ -68,7 +69,7 @@
     }
   },
   "devDependencies": {
-    "@pastweb/tools": "^2.6.0",
+    "@pastweb/tools": "file:../tools",
     "@reduxjs/toolkit": "^2.12.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -82,6 +83,7 @@
     "bumpp": "^11.1.0",
     "import": "^0.0.6",
     "react-redux": "^9.3.0",
+    "redux": "^5.0.1",
     "rollup-plugin-preserve-directives": "^0.4.0",
     "tsdown": "^0.22.0",
     "typescript": "^6.0.3",
@@ -201,6 +203,18 @@
     "./AsyncComponent/types": {
       "import": "./dist/AsyncComponent/types.js",
       "require": "./dist/AsyncComponent/types.cjs"
+    },
+    "./Remote": {
+      "import": "./dist/Remote/index.js",
+      "require": "./dist/Remote/index.cjs"
+    },
+    "./Remote/Remote": {
+      "import": "./dist/Remote/Remote.js",
+      "require": "./dist/Remote/Remote.cjs"
+    },
+    "./Remote/types": {
+      "import": "./dist/Remote/types.js",
+      "require": "./dist/Remote/types.cjs"
     },
     "./AsyncComponent/util": {
       "import": "./dist/AsyncComponent/util.js",
