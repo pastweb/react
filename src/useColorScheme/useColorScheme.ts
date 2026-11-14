@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { createMatchScheme } from '@pastweb/tools';
-import type { ColorSchemeInfo, MatchScheme, SchemeOptions } from '@pastweb/tools';
+import type { ColorSchemeInfo, SchemeOptions } from '@pastweb/tools';
+import { reuseColorScheme } from './reuseColorScheme';
 
 /**
  * React hook for reading and updating the current color scheme.
  *
- * The signature mirrors `useColorScheme` from `@pastweb/tools`: pass options to
- * create an internal `MatchScheme`, or pass a pre-created `matchScheme` as the
- * second argument. The React wrapper subscribes to mode/system changes and
- * cleans those listeners up when the component unmounts.
+ * Creates an internal `MatchScheme` with `createMatchScheme` and subscribes to
+ * mode and system changes so the component re-renders. To bind an existing
+ * `MatchScheme`, use {@link reuseColorScheme}.
  *
- * @param options - Options passed to `createMatchScheme` when `matchScheme` is not provided.
- * @param matchScheme - Optional pre-created `MatchScheme` instance.
+ * @param options - Options passed to `createMatchScheme`.
  * @returns A tuple with the current color scheme info and the mode setter.
  *
  * @example
@@ -29,25 +28,11 @@ import type { ColorSchemeInfo, MatchScheme, SchemeOptions } from '@pastweb/tools
  * }
  * ```
  */
-export function useColorScheme(options: SchemeOptions = {}, matchScheme?: MatchScheme): [ColorSchemeInfo, (mode: string) => void] {
-  const scheme = useMemo(
-    () => matchScheme ?? createMatchScheme(options),
-    [matchScheme, options.defaultMode, options.datasetName],
+export function useColorScheme(options: SchemeOptions = {}): [ColorSchemeInfo, (mode: string) => void] {
+  const useReusedColorScheme = useMemo(
+    () => reuseColorScheme(createMatchScheme(options)),
+    [options.defaultMode, options.datasetName],
   );
-  const [current, setCurrent] = useState<ColorSchemeInfo>(() => scheme.getInfo());
 
-  useEffect(() => {
-    const updateCurrent = () => setCurrent(scheme.getInfo());
-    const modeListener = scheme.onModeChange(updateCurrent);
-    const systemListener = scheme.onSysSchemeChange(updateCurrent);
-
-    updateCurrent();
-
-    return () => {
-      modeListener.removeListener();
-      systemListener.removeListener();
-    };
-  }, [scheme]);
-
-  return [current, scheme.setMode];
+  return useReusedColorScheme();
 }
