@@ -1,5 +1,6 @@
-import { useRef as uR, type RefObject } from 'react';
+import { useRef as UR } from 'react';
 import { useBeforeMount } from '../useBeforeMount';
+import type { RefObject } from './types';
 
 /**
  * Creates a React ref with a `value` alias for `current`.
@@ -19,8 +20,8 @@ import { useBeforeMount } from '../useBeforeMount';
  * console.log(count.current);
  * ```
  */
-export function useRef<T>(value: T): RefObject<T> & { value: T } {
-  const ref = uR<T>(value);
+export function useRef<T>(value: T): RefObject<T> {
+  const ref = UR<T>(value);
 
   useBeforeMount(() => {
     Object.defineProperty(ref, 'value', {
@@ -29,5 +30,5 @@ export function useRef<T>(value: T): RefObject<T> & { value: T } {
     });
   });
 
-  return ref as RefObject<T> & { value: T };
+  return ref as RefObject<T>;
 }

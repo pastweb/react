@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createMediatorContextUtils, noop, effect, reactive, update, isHMREnabled, getFunctionSignature } from '@pastweb/tools';
-import { getContext, setContext } from '../GlobalContext';
+import { useGlobalContext } from '../GlobalContext/useGlobalContext';
 import { useBeforeMount } from '../useBeforeMount';
 import { useRef } from '../useRef';
 import type { ContextUtils, Mediator, MediatorFunction, Props, Extras } from './types';
@@ -26,6 +26,8 @@ import type { ContextUtils, Mediator, MediatorFunction, Props, Extras } from './
  */
 export const useMediator = <T>(mediator: MediatorFunction<T>, props: Props = {}, extras: Extras = {}): T => {
   const { children, ...restProps } = props;
+  const globalContext = useGlobalContext();
+  const storedGlobalContext = useRef(globalContext);
   const isInit = useRef(true);
   const storedMediator = useRef<MediatorFunction<T> | null>(null);
   const storedMediatorSignature = useRef<string>('');
@@ -36,13 +38,20 @@ export const useMediator = <T>(mediator: MediatorFunction<T>, props: Props = {},
   const onStateChange = useRef((state: Record<string, any>) => updateState.value({ ...state || {}, ...m.value.state || {} }));
   const hmr = isHMREnabled();
 
+  storedGlobalContext.value = globalContext;
+
   function init() {
     storedMediator.value = mediator;
     storedMediatorSignature.value = getFunctionSignature(mediator);
     storedProps.value = reactive({ ...restProps });
     storedExtras.value = reactive({ ...extras });
 
-    const ctxUtils: ContextUtils = { getContext, setContext };
+    const ctxUtils: ContextUtils = {
+      getContext: key => storedGlobalContext.value[key],
+      setContext: (key, value) => {
+        storedGlobalContext.value[key] = value;
+      },
+    };
     m.value = createMediatorContextUtils(storedMediator.value, storedProps.value, storedExtras.value, ctxUtils);
 
     if (m.value.state) effect(onStateChange.value, m.value.state);
