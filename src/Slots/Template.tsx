@@ -15,8 +15,9 @@ import type { TemplateProps } from './types';
  *
  * @example
  * ```tsx
+ * <Template name="header">{slots.header}</Template>
  * <Template name="action">
- *   {({ label }) => <button>{label}</button>}
+ *   <button>Save</button>
  * </Template>
  * ```
  */

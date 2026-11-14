@@ -5,8 +5,8 @@ import type { SlotsProps } from './types';
  * Marks a subtree as a slot boundary.
  *
  * `useSlots` treats nested `Slots` components as opaque children and does not
- * collect `Template` elements inside them. This lets composed slot-aware
- * components keep their own slot scope.
+ * collect `Template` elements inside them. `forwardRef` and `memo` are not
+ * boundaries.
  *
  * @param props - Slot boundary props.
  * @returns The original children.

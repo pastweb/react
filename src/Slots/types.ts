@@ -1,22 +1,26 @@
-import type { ReactNode } from 'react';
+import type { FunctionComponent, ReactNode } from 'react';
 
-/** Function form of slot content. Receives optional slot props. */
-export type SlotFunction = (props?: Record<string, any>) => ReactNode;
-/** A slot can be a React node, a function slot, or an array of either. */
-export type SlotContent = ReactNode | SlotFunction | Array<ReactNode | SlotFunction>;
+/** Collected slot content. Always an array, including when the slot has one node. */
+export type SlotContent = ReactNode[];
+
+/** Collected slot content keyed by slot name. Missing slots are `undefined`. */
+export interface SlotsMap {
+  default?: SlotContent;
+  [name: string]: SlotContent | undefined;
+}
 
 /** Cache shape reserved for slot collections keyed by component identity. */
-export type SlotsCache = WeakMap<symbol, Record<string, SlotContent>>;
+export type SlotsCache = WeakMap<symbol, SlotsMap>;
 
 /** Props accepted by the `Slot` component returned from `useSlots`. */
 export interface SlotProps {
   /** Named slot to render. Defaults to the default slot. */
   name?: string;
-  /** Props injected into element or function slot content. */
+  /** Props injected into element slot content. */
   props?: Record<string, any>;
-  /** Optional mapper used to transform each rendered slot child. */
-  map?: (content: ReactNode | SlotFunction, index: number) => ReactNode | ReactNode[];
-  /** Fallback content rendered when the requested slot is missing. */
+  /** Optional mapper for projected slot content. Fallback children are not mapped. */
+  map?: (content: ReactNode, index: number) => ReactNode | ReactNode[];
+  /** Fallback content rendered as-is when the requested slot is missing. */
   children?: ReactNode | ReactNode[];
 };
 
@@ -30,6 +34,21 @@ export interface SlotsProps {
 export interface TemplateProps {
   /** Slot name. Omit to contribute to the default slot. */
   name?: string;
-  /** Content to render for the slot, or a function slot. */
-  children: ReactNode | SlotFunction;
+  /**
+   * Content to project into the slot.
+   *
+   * Accepts a single node, an array of nodes, or a collected `slots` entry
+   * forwarded from another `useSlots` host.
+   */
+  children?: ReactNode;
 };
+
+/** Result of `useSlots`, including collected content for forwarding. */
+export interface UseSlotsResult {
+  /** Boundary component for nested slot-aware components. */
+  Slots: FunctionComponent<SlotsProps>;
+  /** Renderer for default or named slot content. */
+  Slot: FunctionComponent<SlotProps>;
+  /** Collected slot content, including `default`, for forwarding into `Template`. */
+  slots: SlotsMap;
+}

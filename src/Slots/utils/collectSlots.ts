@@ -2,19 +2,20 @@ import { Children, isValidElement, type ReactElement, type ReactNode } from 'rea
 import { Slots } from '../Slots';
 import { Template } from '../Template';
 import { SLOTS_COMPONENT, TEMPLATE_COMPONENT } from '../constants';
-import type { SlotContent, SlotFunction, TemplateProps } from '../types';
+import type { SlotsMap, TemplateProps } from '../types';
 
 /**
  * Walks a React subtree and fills the provided slot maps.
  *
- * This stops at nested `Slots`, intrinsic DOM elements, `forwardRef`, and
- * `memo` boundaries so parent collectors do not steal slot content from nested
- * components.
+ * This stops at nested `Slots` hosts and intrinsic DOM elements so parent
+ * collectors do not steal slot content from nested slot-aware components.
+ * `forwardRef` and `memo` wrappers are not boundaries; collection keeps
+ * walking their declared `props.children`.
  */
 function traverse(
   node: ReactNode,
-  slots: Record<string, SlotContent>,
-  defaultNodes: Array<ReactNode | SlotFunction>,
+  slots: SlotsMap,
+  defaultNodes: ReactNode[],
 ): void {
   if (node == null) return;
   if (Array.isArray(node)) {
@@ -31,9 +32,7 @@ function traverse(
   if (
     el.type === Slots ||
     (el.type as Record<PropertyKey, any>)[SLOTS_COMPONENT] ||
-    typeof el.type === 'string' ||
-    (node as any).type?.$$typeof === Symbol.for('react.forward_ref') ||
-    (node as any).type?.$$typeof === Symbol.for('react.memo')
+    typeof el.type === 'string'
   ) {
     defaultNodes.push(el);
     return;
@@ -44,12 +43,13 @@ function traverse(
     const component = el.props.children;
 
     if (slotName === 'default') {
-      defaultNodes.push(component);
+      if (Array.isArray(component)) defaultNodes.push(...component);
+      else if (component !== undefined) defaultNodes.push(component);
       return;
     }
-    if (slots[slotName]) return;
+    if (slots[slotName] !== undefined || component === undefined) return;
 
-    slots[slotName] = component;
+    slots[slotName] = Array.isArray(component) ? component : [component];
     return;
   }
 
@@ -64,23 +64,23 @@ function traverse(
  * Collects default content and named `Template` content from a React subtree.
  *
  * @param children - Children passed to a slot-aware component.
- * @returns A map keyed by slot name. The default slot is stored under `default`.
+ * @returns A map keyed by slot name. Each present slot is an array of nodes.
  *
  * @example
  * ```tsx
  * const slots = collectSlots(children);
- * const title = slots.title;
- * const body = slots.default;
+ * const title = slots.title; // ReactNode[] | undefined
+ * const body = slots.default; // ReactNode[] | undefined
  * ```
  */
-export function collectSlots(children: ReactNode): Record<string, SlotContent> {
-  const slots: Record<string, SlotContent> = {};
-  const defaultNodes: Array<ReactNode | SlotFunction> = [];
+export function collectSlots(children: ReactNode): SlotsMap {
+  const slots: SlotsMap = {};
+  const defaultNodes: ReactNode[] = [];
 
   Children.forEach(children, child => traverse(child, slots, defaultNodes));
 
   if (defaultNodes.length) {
-    slots['default'] = defaultNodes.length === 1 ? defaultNodes[0] : defaultNodes;
+    slots['default'] = defaultNodes;
   }
 
   return slots;
