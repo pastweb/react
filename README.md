@@ -12,6 +12,7 @@ It provides React-specific bindings for the framework-agnostic primitives in `@p
 - **SSR-ready composition** — Entry helpers, `AsyncComponent`, and `Island` support the page-router SSR and partial hydration flow.
 - **Router integration** — React hooks and components for `createViewRouter`.
 - **Portal support** — React providers and hooks for portal descriptors and anchors.
+- **Window management** — A provider, installer, and hook for sharing one reactive `createWindowManager()` instance across an application.
 - **TypeScript-first** — Public APIs include TSDoc and exported types for app-level integration.
 
 ## Installation
@@ -33,7 +34,7 @@ The documentation is organized into the following major categories. Each section
 - **Async functions** — Async Redux store helpers and color-scheme hooks.
 - **Routing** — React integration for `createViewRouter`.
 - **Browser functions** — Browser-aware hooks such as device matching.
-- **Element functions** — Async components, entry rendering, islands, portals, and UI composition helpers.
+- **Element functions** — Async components, remote-module loading, entry rendering, islands, portals, and UI composition helpers.
 - **Hook functions** — General React lifecycle and mediator hooks.
 - **Utility functions** — Small React utilities such as `Render` and `setRef`.
 
@@ -45,6 +46,7 @@ This project is distributed under the MIT licence.
   - [GlobalContext](#globalcontext)
   - [getContext](#getcontext)
   - [setContext](#setcontext)
+  - [Window management](#window-management)
 - [API functions](#api-functions)
   - [ApiQueryProvider](#apiqueryprovider)
   - [installApiCache](#installapicache)
@@ -58,6 +60,7 @@ This project is distributed under the MIT licence.
   - [createReduxAsyncStore](#createreduxasyncstore)
     - [ReduxProvider](#reduxprovider)
   - [useColorScheme](#usecolorscheme)
+    - [reuseColorScheme](#reusecolorscheme)
 - [Routing](#routing)
   - [ViewRouter](#viewrouter)
     - [router setup](#router-setup)
@@ -78,6 +81,8 @@ This project is distributed under the MIT licence.
   - [reuseMatchDevice](#reusematchdevice)
 - [Element functions](#element-functions)
   - [AsyncComponent](#asynccomponent)
+    - [normalizeDependency](#normalizedependency)
+  - [Remote](#remote)
   - [createEntry](#createentry)
   - [EntryAdapter](#entryadapter)
   - [Island](#island)
@@ -90,6 +95,7 @@ This project is distributed under the MIT licence.
     - [Portal](#portal)
   - [Slots](#slots)
     - [useSlots](#useslots)
+      - [Forwarding slots](#forwarding-slots)
     - [Template](#template)
 - [Hook functions](#hook-functions)
   - [useBeforeMount](#usebeforemount)
@@ -190,6 +196,48 @@ function StatusWriter({ ready }: { ready: boolean }) {
   return null;
 }
 ```
+
+### `Window management`
+
+Create one `WindowManager` at the application boundary and provide that same
+instance to every managed window and taskbar component. `WindowManagerProvider`
+is the convenient React setup; `installWindowManager` is available when the
+application already composes services with `GlobalContext`.
+
+`useWindowManager` returns the original manager or `undefined`; it does not
+subscribe to manager state or force React renders. Use the manager's state and
+commands where the application needs them.
+
+**Example:**
+```tsx
+import { createWindowManager } from '@pastweb/tools';
+import { WindowManagerProvider, useWindowManager } from '@pastweb/react';
+
+const windowManager = createWindowManager();
+
+function Taskbar() {
+  const manager = useWindowManager();
+
+  if (!manager) return null;
+
+  return manager.state.windows.map(window => (
+    <button key={window.id} onClick={() => manager.manageWindow(window)}>
+      {window.meta.label}
+    </button>
+  ));
+}
+
+export function App() {
+  return (
+    <WindowManagerProvider manager={windowManager}>
+      <Taskbar />
+    </WindowManagerProvider>
+  );
+}
+```
+
+For an existing `GlobalContext` composition, pass
+`installWindowManager({ manager: windowManager })` in its `use` array.
 
 ---
 ## API functions
@@ -401,17 +449,18 @@ Parameters
       * An optional initialization function that is executed when the store is initialized. This can be used for custom setup logic, such as loading initial data or middleware.
 
 Returns
-* `ReduxAsyncStore`: An object that represents the custom Redux store with enhanced functionality. It includes:
-  * `store`: The underlying Redux store, with added support for asynchronous reducers.
-  * `asyncReducers`: An object that stores the dynamically added reducers, keyed by their names.
+* `ReduxAsyncStore`: A tools async store that wraps a Redux store. It includes:
+  * `store`: The underlying Redux store. Dynamically added reducers are kept on `store.asyncReducers`.
   * `useDispatch`: A typed hook for dispatching actions in a type-safe manner.
   * `useSelector`: A typed hook for selecting state from the store, ensuring type safety.
-  * `init()`: A method that initializes the store and executes the onInit function.
-    * Initializes the store and executes the optional onInit function provided in the options.
+  * `init()`: A method that initializes the store and executes the `onInit` function, then marks the async store ready.
+  * `isReady`: A promise that resolves when `init()` has finished.
   * `addReducer(reducerKey: string, reducer: Reducer)`: A method for dynamically adding a new reducer to the store.
     * Adds a new reducer to the store, keyed by `reducerKey`. If a reducer with the same key already exists, it won't be added again.
   * `removeReducer(reducerKey: string)`: A method for dynamically removing an existing reducer from the store.
     * Removes an existing reducer from the store based on the provided `reducerKey`. If the reducer does not exist, the store remains unchanged.
+
+Pass the async store to `createEntry` `waitFor` (or call `init()` yourself) so `onInit` runs before the UI reads state. `normalizeAsyncQueue` recognizes the store because it is created with `createAsyncStore` from `@pastweb/tools`.
 
 **Example:**
 ```bash
@@ -444,13 +493,13 @@ export const useSelector = redux.useSelector;
 export const useDispatch = redux.useDispatch;
 ```
 
-Then in your Providers component you can use the `ReduxProvider` for the `asyncReduxStore`:
+Then in your Providers component you can use the `ReduxProvider` for the async store:
 
 **Example:**
 ```tsx
 // @/react/getEntry/Providers.tsx
-import type { ReactNode } from 'react'; 
-import { ReduxProvider } from '@pastweb/react';
+import type { ReactNode } from 'react';
+import { ReduxProvider } from '@pastweb/react/createReduxAsyncStore';
 import { redux } from '@/react/redux';
 
 interface ProvidersProps {
@@ -459,7 +508,7 @@ interface ProvidersProps {
 
 export default function Providers({ children }: ProvidersProps) {
   return (
-    <ReduxProvider reduxStore={redux} fallback={<div>Loading...</div>}>
+    <ReduxProvider store={redux} fallback={<div>Loading...</div>}>
       { children }
     </ReduxProvider>
   );
@@ -468,48 +517,39 @@ export default function Providers({ children }: ProvidersProps) {
 ---
 ### `ReduxProvider`
 
-The `ReduxProvider` is a React component that ensures your application is wrapped with the Redux `Provider` only when the asynchronous Redux store is fully initialized.
-It provides a convenient way to handle the async setup of a Redux store and offers an optional fallback UI to be displayed while the store is preparing as in the example above.
+The `ReduxProvider` wraps children with the Redux `Provider` once the store is ready. Pass a `ReduxAsyncStore` from `createReduxAsyncStore`, or a regular Redux store.
+
+For an async store it waits until `isReady` resolves, then passes `store.store` into `react-redux`. Regular Redux stores render immediately.
 
 Props
 
-* `reduxStore`: `ReduxStore`
-  * The Redux store object, which includes the `isReady` promise and store itself.
+* `store`: `Store | ReduxAsyncStore`
+  * A regular Redux store, or the async store returned by `createReduxAsyncStore`.
 * `children`: `React.ReactNode`
   * The React elements (usually components) to be rendered inside the Redux `Provider` once the store is ready.
 * `fallback`: `React.ReactElement` _(optional)_
-  * An optional React element to be displayed as a fallback UI while the Redux store is initializing.
+  * An optional React element to be displayed as a fallback UI while the Redux store is initializing. Defaults to an empty fragment.
 ---
 
 ### `useColorScheme`
 
 React hook for managing and tracking color scheme changes.
 
-This hook mirrors `useColorScheme` from `@pastweb/tools`: pass options to create an internal `MatchScheme`, or pass a pre-created `MatchScheme` as the second argument. It listens for changes in the system's preferred color scheme and user-selected mode, then re-renders the React component.
+Creates an internal `MatchScheme` with `createMatchScheme` from `@pastweb/tools`, then listens for mode and system changes so the React component re-renders. To bind a pre-created `MatchScheme`, use [`reuseColorScheme`](#reusecolorscheme).
 
 > #### Syntax
 
 ```ts
-function useColorScheme(
-  options?: SchemeOptions,
-  matchScheme?: MatchScheme,
-): [ColorSchemeInfo, (mode: string) => void]
+function useColorScheme(options?: SchemeOptions): [ColorSchemeInfo, (mode: string) => void]
 ```
 
-#### Parameters
+Parameters
+* `options`: `SchemeOptions` _(optional)_
+  * Options passed to `createMatchScheme`.
 
-- **`options`** (`SchemeOptions`)  
-  Options passed to `createMatchScheme` when `matchScheme` is not provided.
-- **`matchScheme`** (`MatchScheme`, optional)  
-  A pre-created `MatchScheme` instance.
-
-#### Returns
-
-A tuple containing:
-- **`ColorSchemeInfo`**  
-  The current color scheme information.
-- **`(mode: string) => void`**  
-  A function to update the color mode.
+Returns
+* `[ColorSchemeInfo, (mode: string) => void]`
+  * A tuple with the current color scheme information and a function to update the color mode.
 
 **Example:**
 ```ts
@@ -522,11 +562,49 @@ setMode('dark'); // Updates the mode to 'dark'
 ```
 ---
 
+### `reuseColorScheme`
+
+Creates a React hook bound to an existing tools `MatchScheme`. Use this when the scheme is created outside React, for example next to a `createMatchSchemeAsyncStore`.
+
+> #### Syntax
+
+```ts
+function reuseColorScheme(matchScheme: MatchScheme): () => [ColorSchemeInfo, (mode: string) => void]
+```
+
+Parameters
+* `matchScheme`: `MatchScheme`
+  * A pre-created `MatchScheme` instance.
+
+Returns
+* `() => [ColorSchemeInfo, (mode: string) => void]`
+  * A React hook that returns the current color scheme information and a function to update the color mode.
+
+**Example:**
+```tsx
+import { createMatchScheme } from '@pastweb/tools';
+import { reuseColorScheme } from '@pastweb/react';
+
+const matchScheme = createMatchScheme({ defaultMode: 'auto' });
+const useColorScheme = reuseColorScheme(matchScheme);
+
+function ThemeButton() {
+  const [scheme, setMode] = useColorScheme();
+
+  return (
+    <button onClick={() => setMode(scheme.selected === 'dark' ? 'light' : 'dark')}>
+      Current theme: {scheme.selected}
+    </button>
+  );
+}
+```
+---
+
 ## Routing
 
 ### `ViewRouter`
 
-`ViewRouter` comes from `@pastweb/tools`. The React package can install that router with `GlobalContext`, or provide it locally with `RouterProvider`, then expose components/hooks that render route views, links, and reactive router state.
+`ViewRouter` comes from `@pastweb/tools`. The React package installs that router with `GlobalContext`; `RouterProvider` is the component form of that installation. Components and hooks then render route views, links, and reactive router state.
 
 ---
 ### `router setup`
@@ -564,7 +642,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 }
 ```
 
-For a local provider style, use `RouterProvider` directly:
+For a component provider style, use `RouterProvider` directly:
 
 **Example:**
 ```tsx
@@ -599,7 +677,7 @@ const installRouterContext = installRouter({
 ---
 ### `RouterProvider`
 
-`RouterProvider` provides a tools `ViewRouter` through dedicated React context. Use it when a subtree needs router hooks/components but you do not want to install the router through `GlobalContext`.
+`RouterProvider` is the component form of `installRouter`. It installs the tools `ViewRouter` and the root route depth through `GlobalContext`, so router hooks and nested `RouterView` instances resolve the same scoped values.
 
 **Example:**
 ```tsx
@@ -791,7 +869,7 @@ await router.navigate('/home');
 ---
 ### `useRouterLink`
 
-`useRouterLink` returns the descriptor from `router.getRouterLink` and re-renders when the active route changes.
+`useRouterLink` returns the descriptor from `router.getRouterLink` and re-renders when the active route changes. `isActive` is true for the link path and nested paths under it (`/blog` on `/blog/post`), but not for sibling paths that only share a string prefix (`/dropdown` on `/dropdownmenu`).
 
 > #### Syntax
 
@@ -944,6 +1022,131 @@ export function ProductRoute() {
 
 ---
 
+### `Remote`
+
+`Remote` loads a micro-frontend module after resolving an optional remote bootstrap dependency or dependency group. It uses React Suspense while loading and renders `errorFallback` if a dependency or the remote module cannot be loaded. It is intentionally separate from `AsyncComponent`, which is for local async component loading and SSR task composition.
+
+> #### Syntax
+
+```ts
+function Remote(props: RemoteProps): ReactElement
+```
+
+Props
+
+* `component`: `() => Promise<{ default: Component }>`
+  * Resolves the remote module's default component export.
+* `dependency`: `(() => Promise<any>) | Array<() => Promise<any>>` _(optional)_
+  * One or more remote bootstrap loaders that resolve before the component import.
+* `fallback`: `ReactNode` _(optional)_
+  * Content rendered while the dependencies and remote module load.
+* `errorFallback`: `ReactNode` _(optional)_
+  * Content rendered if a dependency or remote module fails to load.
+
+**Example:**
+
+```tsx
+import { Remote } from '@pastweb/react';
+
+export function ReportsRoute() {
+  return (
+    <Remote
+      component={() => import('reports/App')}
+      dependency={[
+        () => import('reports/bootstrap'),
+        () => import('reports/translations'),
+      ]}
+      fallback={<p>Loading reports…</p>}
+      errorFallback={<p>Reports is currently unavailable.</p>}
+      locale="en-GB"
+    />
+  );
+}
+```
+
+---
+
+### `normalizeDependency`
+
+`normalizeDependency` turns a dependency function, promise, or `DependencyInfo` object into a consistent `DependencyInfo`. Use it when you want to attach `onSuccess` or `onError` to a dependency that was not already written as a `DependencyInfo`, for example to inject a Redux reducer before the async component renders.
+
+> #### Syntax
+
+```ts
+function normalizeDependency(dependency: Dependency | DependencyInfo): DependencyInfo
+```
+
+Parameters
+
+* `dependency`: `Dependency | DependencyInfo`
+  * A loader function, a module promise, or an existing `DependencyInfo` object.
+
+Returns
+
+* `DependencyInfo`
+  * The normalized dependency, with `exportName` defaulting to `'default'`.
+
+**Example:**
+```tsx
+import { useRef } from 'react';
+import {
+  AsyncComponent,
+  normalizeDependency,
+  type Dependency,
+  type DependencyInfo,
+} from '@pastweb/react';
+import { injectReducer } from '@/react/redux';
+
+type ReducerInfo = {
+  [reducerName: string]: Dependency | DependencyInfo;
+};
+
+type AsyncProps = {
+  component: () => Promise<{ default: React.ComponentType }>;
+  reducer?: ReducerInfo;
+};
+
+export function Async(props: AsyncProps) {
+  const { component, reducer, ...rest } = props;
+  const dependencies = useRef(((reducerInfo?: ReducerInfo) => {
+    if (!reducerInfo) return;
+
+    const [reducerName] = Object.keys(reducerInfo);
+    const dependency = normalizeDependency(reducerInfo[reducerName]);
+
+    dependency.onSuccess = loadedReducer => {
+      injectReducer(reducerName, loadedReducer);
+    };
+
+    return [dependency];
+  })(reducer));
+
+  return (
+    <AsyncComponent
+      component={component}
+      dependencies={dependencies.current}
+      fallback={<div>Loading...</div>}
+      {...rest}
+    />
+  );
+}
+
+export function ProductRoute() {
+  return (
+    <Async
+      component={() => import('@/react/components/ProductDetails')}
+      reducer={{
+        product: () => import('@/react/redux/productReducer'),
+      }}
+    />
+  );
+}
+```
+
+`Async` accepts a `reducer` map whose value can be a loader function, a promise, or a `DependencyInfo`. `normalizeDependency` converts that value so `onSuccess` can inject the loaded reducer with `injectReducer` before `ProductDetails` renders.
+
+---
+
 ### `createEntry`
 
 The `createEntry` function simplifies the process of setting up, rendering, and unmounting a React component in a web application. It includes support for asynchronous dependencies and customizable providers.
@@ -1079,7 +1282,7 @@ React already supports [portals](https://react.dev/reference/react-dom/createPor
 ---
 ### `portals setup`
 
-Portal entries render components into DOM elements called anchors. Create the anchor ids with `generateAnchors`, then either install the portal descriptor with `installPortals` and `GlobalContext`, or provide it locally with `PortalsProvider`.
+Portal entries render components into DOM elements called anchors. Create the anchor ids with `generateAnchors`, then install the portal descriptor with `installPortals` or use `PortalsProvider`, which installs the same values through `GlobalContext`.
 
 **Example:**
 ```tsx
@@ -1131,7 +1334,7 @@ export function PortalAnchors() {
 ---
 ### `PortalsProvider`
 
-`PortalsProvider` provides portal helpers through dedicated React context. Use it when a subtree needs portals but you do not want to install them through `GlobalContext`.
+`PortalsProvider` is the component form of `installPortals`. It installs portal helpers through `GlobalContext`, so `Portal`, `usePortals`, and `usePortalAnchors` resolve the same scoped values.
 
 **Example:**
 ```tsx
@@ -1216,6 +1419,12 @@ function usePortal(): PortalHandler & { isReady: () => void }
 
 The `Portal` component binds a `usePortal` handler to a portal path. It renders `null` directly; the child element is mounted by the portal entry when the handler opens.
 
+Pass an application window manager through the optional `manager` prop to
+register each successfully opened entry with it. Portal uses the entry ID,
+routes a manager close request to the existing handler close action, and
+unregisters the entry when the handler reports removal. Without a `manager`
+prop, Portal retains its existing unmanaged behavior.
+
 Props
 
 * path: `string`
@@ -1251,7 +1460,11 @@ function ProductModalButton() {
 
 `Slots` is a boundary component for nested slot-aware components.
 
-When `useSlots` scans children, it treats nested `Slots` boundaries as opaque children and does not collect `Template` elements inside them. This keeps parent and child slot collections independent while preserving the rendered child tree.
+When `useSlots` scans children, it treats nested `Slots` boundaries and
+intrinsic DOM elements as opaque and does not collect `Template` elements
+inside them. `forwardRef` and `memo` are not boundaries; collection continues
+through their declared children. Nested slot-aware components should wrap
+their own slot tree in `Slots` so a parent collector cannot steal it.
 
 #### Parameters
 
@@ -1292,7 +1505,7 @@ function Panel({ children }: { children: React.ReactNode }) {
 
 #### Nested slots
 
-Wrap a nested slot-aware component with `Slots` when it appears inside another slot-aware component. The wrapper tells the parent collector to leave the child component's templates untouched so the child can collect them itself.
+Wrap a nested slot-aware component with `Slots` when it appears inside another slot-aware component. The wrapper tells the parent collector to leave the child component's templates untouched so the child can collect them itself. Wrapping with `forwardRef` or `memo` is not enough.
 
 **Example:**
 ```tsx
@@ -1344,20 +1557,46 @@ function Card({ children }: { children: React.ReactNode }) {
 </Page>
 ```
 
+#### Best practice
+
+Prefer `Template` for every projected slot, including the default slot. Omit `name` (or use `name="default"`) for default content. Collection stores a template's children as one payload and does not walk into hosts such as `forwardRef` buttons, so the trigger or nested host stays intact.
+
+This matters most for nested slot-aware components. Put the nested component's trigger and its named slots in `Template` markers, and wrap the nested component in `Slots` so the parent collector cannot steal those templates.
+
+```tsx
+<Menu>
+  <Template>
+    <Button>Open</Button>
+  </Template>
+  <Template name="items">
+    <MenuItem>Item 1</MenuItem>
+    <Slots>
+      <SubMenu>
+        <Template>More</Template>
+        <Template name="items">
+          <MenuItem>Nested item</MenuItem>
+        </Template>
+      </SubMenu>
+    </Slots>
+  </Template>
+</Menu>
+```
+
+Passing `<Button>Open</Button>` as a raw child can unwrap the button: collection walks into `forwardRef` hosts and keeps the inner text. A default `Template` avoids that.
+
 ---
 ### `useSlots`
 
 `useSlots` collects default children and named `Template` children into renderable slots.
 
-The returned `Slot` component renders the default slot when no name is provided, renders fallback children when a named slot is missing, supports prop injection for element/function slot content, and supports custom mapping.
+The returned `Slot` component renders the default slot when no name is provided, renders fallback children when a named slot is missing, supports prop injection for element slot content, and supports custom mapping. `map` is applied only to projected `Template` content; fallback children are rendered as-is.
+
+Collected `slots` values are always arrays. A template with one child yields `[child]`. A missing named slot stays `undefined`, so forwarding `{slots.header}` still lets an inner `Slot` fallback render.
 
 > #### Syntax
 
 ```ts
-function useSlots(defaultNodes: ReactNode): {
-  Slots: typeof Slots;
-  Slot: (props: SlotProps) => ReactNode;
-}
+function useSlots(defaultNodes: ReactNode): UseSlotsResult
 ```
 
 #### Parameters
@@ -1373,10 +1612,19 @@ An object containing:
   Boundary component for nested slot-aware components.
 - **`Slot`** (`FunctionComponent<SlotProps>`)  
   Renderer for default or named slot content.
+- **`slots`** (`SlotsMap`)  
+  Collected slot content, including `default`. Each present entry is a
+  `ReactNode[]`, including when the slot has one node. Missing slots are
+  `undefined`. Forward entries through another `Template` when wrapping or
+  composing slot-aware components.
 
 **Example:**
 ```tsx
 import { Template, useSlots } from '@pastweb/react';
+
+function ActionButton({ label }: { label?: string }) {
+  return <button>{label}</button>;
+}
 
 function Toolbar({ children }: { children: React.ReactNode }) {
   const { Slot } = useSlots(children);
@@ -1396,24 +1644,102 @@ function Toolbar({ children }: { children: React.ReactNode }) {
 
 <Toolbar>
   <Template name="action">
-    {({ label }) => <button>{label}</button>}
+    <ActionButton />
   </Template>
 </Toolbar>
 ```
+
+`map` does not wrap fallback `Slot` children. Put the finished markup in the fallback when a mapped wrapper is required without projected content.
+
+#### Forwarding slots
+
+Use the `slots` map when a wrapper must collect content, wrap part of it, and
+pass the rest through to another slot-aware component.
+
+`useSlots` walks `Template` markers and default children. If a custom wrapper
+such as a scroll area is passed as a child of the inner host, collection walks
+through that wrapper and drops it. Collect first, then re-project:
+
+- named entries with `<Template name={...}>{slots[name]}</Template>`
+- default content with `<Template>{slots.default}</Template>`, or `<Slot />`
+  inside extra markup when the default slot needs a wrapper
+
+```tsx
+import { Template, useSlots } from '@pastweb/react';
+
+function Panel({ children }: { children: React.ReactNode }) {
+  const { Slot } = useSlots(children);
+
+  return (
+    <article>
+      <header>
+        <Slot name="header" />
+      </header>
+      <div>
+        <Slot />
+      </div>
+      <footer>
+        <Slot name="footer" />
+      </footer>
+    </article>
+  );
+}
+
+function ScrollPanel({ children }: { children: React.ReactNode }) {
+  const { slots, Slot } = useSlots(children);
+
+  return (
+    <Panel>
+      <Template name="header">{slots.header}</Template>
+      <Template>
+        <div className="scroll-area">
+          <Slot />
+        </div>
+      </Template>
+      <Template name="footer">{slots.footer}</Template>
+    </Panel>
+  );
+}
+
+<ScrollPanel>
+  <Template name="header">Account</Template>
+  <p>Long body content</p>
+  <Template name="footer">
+    <button>Save</button>
+  </Template>
+</ScrollPanel>
+```
+
+**Notes:**
+
+- Collected `slots` entries are always arrays, including for a single node, so
+  `{slots.header}` type-checks as `Template` children.
+- Put `<Slot />` inside extra markup when wrapping default content so collection
+  does not drop the wrapper. `{slots.default}` is enough when the default slot
+  is forwarded unchanged.
+- Forwarding `<Template name="header">{slots.header}</Template>` with no header
+  still lets the inner `Slot` fallback render, because the collected value is
+  `undefined`.
 
 ---
 ### `Template`
 
 `Template` marks content that should be collected by `useSlots`.
 
-Omitting `name` makes the template content part of the default slot. `Template.reduce` and `Template.only` are available for filtering child collections while preserving the same public API.
+Omitting `name` makes the template content part of the default slot. Prefer a
+default `Template` even when the slot has no name, especially for nested
+slot-aware components; see Best practice under `Slots`. `Template.reduce` and
+`Template.only` are available for filtering child collections while preserving
+the same public API.
 
 #### Parameters
 
 - **`name`** (`string`, optional)  
   Name of the slot to register. Defaults to the default slot.
-- **`children`** (`ReactNode | SlotFunction`, optional)  
-  Static content, React elements, arrays, or a function that receives slot props.
+- **`children`** (`ReactNode`, optional)  
+  Static content, React elements, arrays of nodes, or collected `slots`
+  entries forwarded from another `useSlots` host. Collected entries are always
+  arrays.
 
 #### Returns
 
@@ -1430,6 +1756,10 @@ Omitting `name` makes the template content part of the default slot. `Template.r
 ```tsx
 import { Template, useSlots } from '@pastweb/react';
 
+function ActionButton({ label }: { label?: string }) {
+  return <button>{label}</button>;
+}
+
 function ActionPanel({ children }: { children: React.ReactNode }) {
   const { Slot } = useSlots(children);
 
@@ -1438,7 +1768,7 @@ function ActionPanel({ children }: { children: React.ReactNode }) {
 
 <ActionPanel>
   <Template name="action">
-    {({ label }) => <button>{label}</button>}
+    <ActionButton />
   </Template>
 </ActionPanel>
 ```
@@ -1623,10 +1953,11 @@ function createMicroStore<S, A>(
 ```
 
 **Example:**
-```tsx
+```ts
+// @/stores/counterStore.ts
 import { createMicroStore } from '@pastweb/react';
 
-const useCounterStore = createMicroStore('counter', () => ({
+export const useCounterStore = createMicroStore('counter', () => ({
   state: { count: 0 },
   actions: {
     increment() {
@@ -1634,8 +1965,13 @@ const useCounterStore = createMicroStore('counter', () => ({
     },
   },
 }));
+```
 
-function Counter() {
+```tsx
+// Counter.tsx
+import { useCounterStore } from '@/stores/counterStore';
+
+export function Counter() {
   const counter = useCounterStore(state => state.count);
 
   return (
@@ -1649,18 +1985,19 @@ function Counter() {
 ---
 ### `reuseMicroStore`
 
-`reuseMicroStore` is the lower-level bridge for a tools store that was already created elsewhere. Use it when the store belongs to the framework-agnostic layer, but a React component needs to read it and re-render when the selected state changes.
+`reuseMicroStore` is the lower-level bridge for a tools store that was already created elsewhere. It returns a **React hook** (same shape as `createMicroStore`). Call that hook inside components, optionally with a selector.
 
 > #### Syntax
 ```ts
-function reuseMicroStore<S, A, T = S>(
+function reuseMicroStore<S, A>(
   store: UseMicroStore<S, A>,
-  selector?: ReactMicroStoreSelector<T, S>,
-): ReuseMicroStoreResult<T, A>
+): ReuseMicroStoreHook<S, A>
+// useStore() | useStore(selector)
 ```
 
 **Example:**
-```tsx
+```ts
+// @/stores/settingsStore.ts
 import { createMicroStore } from '@pastweb/tools';
 import { reuseMicroStore } from '@pastweb/react';
 
@@ -1683,8 +2020,15 @@ const settingsStore = createMicroStore('settings', () => ({
   },
 }));
 
-function UserSummary() {
-  const user = reuseMicroStore(settingsStore, state => state.user);
+export const useSettingsStore = reuseMicroStore(settingsStore);
+```
+
+```tsx
+// UserSummary.tsx
+import { useSettingsStore } from '@/stores/settingsStore';
+
+export function UserSummary() {
+  const user = useSettingsStore(state => state.user);
 
   return (
     <section>
