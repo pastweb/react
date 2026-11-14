@@ -6,26 +6,25 @@ import type {
   MicroStoreActions,
   ReactMicroStore,
   ReactMicroStoreSelector,
+  ReuseMicroStoreHook,
   ReuseMicroStoreResult,
 } from './types';
 
 /**
- * Reuses a tools `useMicroStore` function inside React rendering.
+ * Bridges a tools `useMicroStore` into React and returns a React hook for it.
  *
- * `createMicroStore` from `@pastweb/tools` returns a framework-agnostic
- * `useMicroStore` function. `reuseMicroStore` receives that function, calls it
- * with the optional selector, and subscribes React to the selected state so the
- * component re-renders after store actions mutate reactive state.
+ * Define the bridge next to the tools store, export the hook, and call it inside
+ * components (optionally with a selector) so React re-renders when selected
+ * state changes.
  *
  * @typeParam S - Micro-store state shape.
  * @typeParam A - Micro-store action shape.
- * @typeParam T - Selected state value when a selector is provided.
- * @param store - `useMicroStore` function returned by `createMicroStore` from `@pastweb/tools`.
- * @param selector - Optional selector passed to the tools `useMicroStore`.
- * @returns Full or selected micro-store state plus the original actions.
+ * @param store - `useMicroStore` from `createMicroStore` in `@pastweb/tools`.
+ * @returns A React hook: `useStore()` or `useStore(selector)`.
  *
  * @example
- * ```tsx
+ * ```ts
+ * // @/stores/settingsStore.ts
  * import { createMicroStore } from '@pastweb/tools';
  * import { reuseMicroStore } from '@pastweb/react';
  *
@@ -33,9 +32,7 @@ import type {
  *   state: {
  *     user: {
  *       name: 'Ada',
- *       preferences: {
- *         theme: 'light',
- *       },
+ *       preferences: { theme: 'light' },
  *     },
  *   },
  *   actions: {
@@ -48,8 +45,16 @@ import type {
  *   },
  * }));
  *
- * function SettingsPanel() {
- *   const settings = reuseMicroStore(settingsStore);
+ * export const useSettingsStore = reuseMicroStore(settingsStore);
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // SettingsPanel.tsx
+ * import { useSettingsStore } from '@/stores/settingsStore';
+ *
+ * export function SettingsPanel() {
+ *   const settings = useSettingsStore();
  *
  *   return (
  *     <button onClick={settings.useDarkTheme}>
@@ -61,11 +66,11 @@ import type {
  *
  * @example
  * ```tsx
- * function ThemeButton() {
- *   const theme = reuseMicroStore(
- *     settingsStore,
- *     state => state.user.preferences.theme,
- *   );
+ * // ThemeButton.tsx
+ * import { useSettingsStore } from '@/stores/settingsStore';
+ *
+ * export function ThemeButton() {
+ *   const theme = useSettingsStore(state => state.user.preferences.theme);
  *
  *   return <button onClick={theme.useDarkTheme}>{theme.state}</button>;
  * }
@@ -74,24 +79,30 @@ import type {
 export function reuseMicroStore<
   S extends Record<string, any>,
   A extends MicroStoreActions,
-  T = never,
->(
-  store: ReactMicroStore<S, A>,
-  selector?: ReactMicroStoreSelector<T, S>,
-): ReuseMicroStoreResult<S, A, T> {
-  const forceUpdate = useForceUpdate();
-  const storeRef = useRef(store);
-  const selectorRef = useRef<typeof selector>(selector);
+>(store: ReactMicroStore<S, A>): ReuseMicroStoreHook<S, A> {
+  function useStore(): ReuseMicroStoreResult<S, A>;
+  function useStore<T>(
+    selector: ReactMicroStoreSelector<T, S>,
+  ): ReuseMicroStoreResult<S, A, T>;
+  function useStore<T>(
+    selector?: ReactMicroStoreSelector<T, S>,
+  ): ReuseMicroStoreResult<S, A, T> {
+    const forceUpdate = useForceUpdate();
+    const storeRef = useRef(store);
+    const selectorRef = useRef<typeof selector>(selector);
 
-  storeRef.current = store;
-  selectorRef.current = selector;
+    storeRef.current = store;
+    selectorRef.current = selector;
 
-  useEffect(() => {
-    effect(
-      forceUpdate,
-      () => getStoreSnapshot(storeRef.current, selectorRef.current),
-    );
-  }, [forceUpdate]);
+    useEffect(() => {
+      effect(
+        forceUpdate,
+        () => getStoreSnapshot(storeRef.current, selectorRef.current),
+      );
+    }, [forceUpdate]);
 
-  return (selector ? store(selector) : store()) as ReuseMicroStoreResult<S, A, T>;
+    return (selector ? store(selector) : store()) as ReuseMicroStoreResult<S, A, T>;
+  }
+
+  return useStore as ReuseMicroStoreHook<S, A>;
 }

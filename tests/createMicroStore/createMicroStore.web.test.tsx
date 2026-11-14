@@ -19,9 +19,10 @@ describe('createMicroStore', () => {
         },
       },
     }));
+    const useCounterStore = reuseMicroStore(counterStore);
 
     function Counter() {
-      const counter = reuseMicroStore(counterStore);
+      const counter = useCounterStore();
 
       return (
         <button onClick={counter.increment}>
@@ -95,9 +96,10 @@ describe('createMicroStore', () => {
         },
       },
     }));
+    const useSettingsStore = reuseMicroStore(settingsStore);
 
     function Accent() {
-      const settings = reuseMicroStore(settingsStore);
+      const settings = useSettingsStore();
 
       return (
         <button onClick={() => settings.setAccent('green')}>

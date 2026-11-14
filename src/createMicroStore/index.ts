@@ -5,6 +5,7 @@ export type {
   MicroStoreActions,
   ReactMicroStore,
   ReactMicroStoreSelector,
+  ReuseMicroStoreHook,
   ReuseMicroStoreResult,
   Selector,
   UseMicroStore,
