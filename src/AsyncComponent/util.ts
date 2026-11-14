@@ -1,1 +1,0 @@
-export { loadDependency } from './utils';

@@ -27,6 +27,7 @@ vi.mock('@pastweb/tools/ssrUtils', () => ({
 
 vi.mock('../../src/AsyncComponent/utils', () => ({
   loadDependency: vi.fn(() => Promise.resolve()),
+  normalizeDependency: vi.fn((dep) => dep),
 }));
 
 describe('AsyncComponent (server side)', () => {
