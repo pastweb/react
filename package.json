@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/react",
   "type": "module",
-  "version": "2.2.1",
+  "version": "2.7.0",
   "description": "React bindings for Pastweb: progressive framework utilities for routing, portals, API query hooks, SSR entries, slots, and reactive state.",
   "author": "Domenico Pasto",
   "license": "MIT",
@@ -204,22 +204,6 @@
       "import": "./dist/AsyncComponent/types.js",
       "require": "./dist/AsyncComponent/types.cjs"
     },
-    "./Remote": {
-      "import": "./dist/Remote/index.js",
-      "require": "./dist/Remote/index.cjs"
-    },
-    "./Remote/Remote": {
-      "import": "./dist/Remote/Remote.js",
-      "require": "./dist/Remote/Remote.cjs"
-    },
-    "./Remote/types": {
-      "import": "./dist/Remote/types.js",
-      "require": "./dist/Remote/types.cjs"
-    },
-    "./AsyncComponent/util": {
-      "import": "./dist/AsyncComponent/util.js",
-      "require": "./dist/AsyncComponent/util.cjs"
-    },
     "./AsyncComponent/utils": {
       "import": "./dist/AsyncComponent/utils.js",
       "require": "./dist/AsyncComponent/utils.cjs"
@@ -312,30 +296,6 @@
       "import": "./dist/createReduxAsyncStore/ReduxProvider.js",
       "require": "./dist/createReduxAsyncStore/ReduxProvider.cjs"
     },
-    "./createReduxAsyncStore/temp/createAsyncStore": {
-      "import": "./dist/createReduxAsyncStore/temp/createAsyncStore/index.js",
-      "require": "./dist/createReduxAsyncStore/temp/createAsyncStore/index.cjs"
-    },
-    "./createReduxAsyncStore/temp/createAsyncStore/constants": {
-      "import": "./dist/createReduxAsyncStore/temp/createAsyncStore/constants.js",
-      "require": "./dist/createReduxAsyncStore/temp/createAsyncStore/constants.cjs"
-    },
-    "./createReduxAsyncStore/temp/createAsyncStore/createAsyncStore": {
-      "import": "./dist/createReduxAsyncStore/temp/createAsyncStore/createAsyncStore.js",
-      "require": "./dist/createReduxAsyncStore/temp/createAsyncStore/createAsyncStore.cjs"
-    },
-    "./createReduxAsyncStore/temp/createAsyncStore/isAsyncStore": {
-      "import": "./dist/createReduxAsyncStore/temp/createAsyncStore/isAsyncStore.js",
-      "require": "./dist/createReduxAsyncStore/temp/createAsyncStore/isAsyncStore.cjs"
-    },
-    "./createReduxAsyncStore/temp/createAsyncStore/normalizeAsyncQueue": {
-      "import": "./dist/createReduxAsyncStore/temp/createAsyncStore/normalizeAsyncQueue.js",
-      "require": "./dist/createReduxAsyncStore/temp/createAsyncStore/normalizeAsyncQueue.cjs"
-    },
-    "./createReduxAsyncStore/temp/createAsyncStore/types": {
-      "import": "./dist/createReduxAsyncStore/temp/createAsyncStore/types.js",
-      "require": "./dist/createReduxAsyncStore/temp/createAsyncStore/types.cjs"
-    },
     "./createReduxAsyncStore/types": {
       "import": "./dist/createReduxAsyncStore/types.js",
       "require": "./dist/createReduxAsyncStore/types.cjs"
@@ -412,10 +372,6 @@
       "import": "./dist/portals/index.js",
       "require": "./dist/portals/index.cjs"
     },
-    "./portals/constants": {
-      "import": "./dist/portals/constants.js",
-      "require": "./dist/portals/constants.cjs"
-    },
     "./portals/installPortals": {
       "import": "./dist/portals/installPortals/index.js",
       "require": "./dist/portals/installPortals/index.cjs"
@@ -479,6 +435,22 @@
     "./portals/usePortals/usePortals": {
       "import": "./dist/portals/usePortals/usePortals.js",
       "require": "./dist/portals/usePortals/usePortals.cjs"
+    },
+    "./Remote": {
+      "import": "./dist/Remote/index.js",
+      "require": "./dist/Remote/index.cjs"
+    },
+    "./Remote/ComponentErrorBoundary": {
+      "import": "./dist/Remote/ComponentErrorBoundary.js",
+      "require": "./dist/Remote/ComponentErrorBoundary.cjs"
+    },
+    "./Remote/Remote": {
+      "import": "./dist/Remote/Remote.js",
+      "require": "./dist/Remote/Remote.cjs"
+    },
+    "./Remote/types": {
+      "import": "./dist/Remote/types.js",
+      "require": "./dist/Remote/types.cjs"
     },
     "./Render": {
       "import": "./dist/Render/index.js",
@@ -700,6 +672,10 @@
       "import": "./dist/useColorScheme/index.js",
       "require": "./dist/useColorScheme/index.cjs"
     },
+    "./useColorScheme/reuseColorScheme": {
+      "import": "./dist/useColorScheme/reuseColorScheme.js",
+      "require": "./dist/useColorScheme/reuseColorScheme.cjs"
+    },
     "./useColorScheme/useColorScheme": {
       "import": "./dist/useColorScheme/useColorScheme.js",
       "require": "./dist/useColorScheme/useColorScheme.cjs"
@@ -752,9 +728,33 @@
       "import": "./dist/useRef/index.js",
       "require": "./dist/useRef/index.cjs"
     },
+    "./useRef/types": {
+      "import": "./dist/useRef/types.js",
+      "require": "./dist/useRef/types.cjs"
+    },
     "./useRef/useRef": {
       "import": "./dist/useRef/useRef.js",
       "require": "./dist/useRef/useRef.cjs"
+    },
+    "./windowManager": {
+      "import": "./dist/windowManager/index.js",
+      "require": "./dist/windowManager/index.cjs"
+    },
+    "./windowManager/installWindowManager": {
+      "import": "./dist/windowManager/installWindowManager.js",
+      "require": "./dist/windowManager/installWindowManager.cjs"
+    },
+    "./windowManager/types": {
+      "import": "./dist/windowManager/types.js",
+      "require": "./dist/windowManager/types.cjs"
+    },
+    "./windowManager/useWindowManager": {
+      "import": "./dist/windowManager/useWindowManager.js",
+      "require": "./dist/windowManager/useWindowManager.cjs"
+    },
+    "./windowManager/WindowManagerProvider": {
+      "import": "./dist/windowManager/WindowManagerProvider.js",
+      "require": "./dist/windowManager/WindowManagerProvider.cjs"
     },
     "./withDefaultProps": {
       "import": "./dist/withDefaultProps/index.js",
@@ -765,9 +765,6 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.cts",
-  "inlinedDependencies": {
-    "redux": "5.0.1"
-  },
   "allowScripts": {
     "fsevents@2.3.2": true,
     "fsevents@2.3.3": true
