@@ -1,12 +1,12 @@
-import { useBeforeMount } from '../../useBeforeMount';
-import { ROUTER_REACT_CONTEXT, ROUTE_DEPTH_REACT_CONTEXT } from '../constants';
+import { GlobalContext } from '../../GlobalContext';
+import { installRouter } from '../installRouter';
 import type { RouterProviderProps } from './types';
 
 /**
- * Provides a tools `ViewRouter` through dedicated React context.
+ * Provides a tools `ViewRouter` through `GlobalContext`.
  *
- * Use this component when a subtree needs router hooks/components but you do
- * not want to install the router through `GlobalContext`.
+ * This is the component form of `installRouter`, following the same pattern
+ * as `PortalsProvider` and `WindowManagerProvider`.
  *
  * @param props - Router options plus children.
  * @returns Provider-wrapped React subtree.
@@ -21,15 +21,9 @@ import type { RouterProviderProps } from './types';
 export function RouterProvider(props: RouterProviderProps) {
   const { router, base, children } = props;
 
-  useBeforeMount(() => {
-    if (base) router.setBase(base);
-  });
-
   return (
-    <ROUTER_REACT_CONTEXT.Provider value={router}>
-      <ROUTE_DEPTH_REACT_CONTEXT.Provider value={-1}>
-        {children}
-      </ROUTE_DEPTH_REACT_CONTEXT.Provider>
-    </ROUTER_REACT_CONTEXT.Provider>
+    <GlobalContext use={installRouter({ router, ...(base ? { base } : {}) })}>
+      {children}
+    </GlobalContext>
   );
 }

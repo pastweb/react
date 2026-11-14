@@ -1,7 +1,5 @@
-import { useContext } from 'react';
 import { ROUTER_CONTEXT_KEY } from '@pastweb/tools';
 import { getContext } from '../../GlobalContext';
-import { ROUTER_REACT_CONTEXT } from '../constants';
 import type { ViewRouter } from '@pastweb/tools';
 
 /**
@@ -19,8 +17,5 @@ import type { ViewRouter } from '@pastweb/tools';
  * ```
  */
 export function useRouter(): ViewRouter {
-  const providerRouter = useContext(ROUTER_REACT_CONTEXT);
-  const globalRouter = getContext<ViewRouter>(ROUTER_CONTEXT_KEY);
-
-  return providerRouter ?? globalRouter;
+  return getContext<ViewRouter>(ROUTER_CONTEXT_KEY);
 }
