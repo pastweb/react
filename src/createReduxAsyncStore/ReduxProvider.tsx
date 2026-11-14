@@ -1,6 +1,6 @@
 import { cloneElement, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
-import { isAsyncStore } from './temp/createAsyncStore/isAsyncStore';
+import { isAsyncStore } from '@pastweb/tools';
 import type { Store } from '@reduxjs/toolkit';
 import type { ReduxProviderProps, ReduxAsyncStore } from './types';
 
@@ -17,18 +17,22 @@ import type { ReduxProviderProps, ReduxAsyncStore } from './types';
  * @returns A `Provider` component wrapping the children, or the fallback UI if the store is not ready.
  *
  * @example
- * // Example usage:
- * <ReduxProvider reduxStore={myReduxStore} fallback={<LoadingSpinner />}>
+ * ```tsx
+ * <ReduxProvider store={myReduxStore} fallback={<LoadingSpinner />}>
  *   <MyApp />
  * </ReduxProvider>
+ * ```
  */
 export function ReduxProvider(props: ReduxProviderProps) {
   const { store, children, fallback = <></> } = props;
-  const [ready, setReady] = useState<boolean>(!isAsyncStore(store));
+  const isAsync = isAsyncStore(store);
+  const [ready, setReady] = useState<boolean>(
+    !isAsync || (store as ReduxAsyncStore).isStoreReady,
+  );
 
   useEffect(() => {
     if (ready) return;
-      
+
     (async () => {
       const result = await (store as ReduxAsyncStore).isReady;
       setReady(result);
@@ -37,7 +41,7 @@ export function ReduxProvider(props: ReduxProviderProps) {
 
   return (
     !ready ? cloneElement(fallback) : (
-      <Provider store={isAsyncStore(store) ? (store as ReduxAsyncStore).store : store as Store}>
+      <Provider store={isAsync ? (store as ReduxAsyncStore).store : store as Store}>
         {children}
       </Provider>
     )

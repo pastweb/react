@@ -7,8 +7,7 @@ import type {
   Tuple,
 } from '@reduxjs/toolkit';
 import type { Reducer } from 'redux';
-// import type { AsyncStore, AsyncStoreOptions } from '@pastweb/tools';
-import type { AsyncStore, AsyncStoreOptions } from './temp/createAsyncStore';
+import type { AsyncStore, AsyncStoreOptions } from '@pastweb/tools';
 import type { TypedUseSelectorHook } from 'react-redux';
 import type { Middleware } from 'redux';
 

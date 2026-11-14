@@ -1,9 +1,7 @@
 import { combineReducers, type  Reducer, type  Store } from 'redux';
 import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
 import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux';
-// import { createAsyncStore, noop } from '@pastweb/tools';
-import { noop } from '@pastweb/tools';
-import { createAsyncStore } from './temp/createAsyncStore';
+import { createAsyncStore, noop } from '@pastweb/tools';
 import type { ReduxAsyncStore, ReduxStoreOptions } from './types';
 
 /**
