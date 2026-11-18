@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/react",
   "type": "module",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "React bindings for Pastweb: progressive framework utilities for routing, portals, API query hooks, SSR entries, slots, and reactive state.",
   "author": "Domenico Pasto",
   "license": "MIT",
@@ -53,7 +53,7 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
-    "@pastweb/tools": "^2.9.0",
+    "@pastweb/tools": "^2.9.1",
     "@reduxjs/toolkit": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -72,7 +72,7 @@
     }
   },
   "devDependencies": {
-    "@pastweb/tools": "^2.9.0",
+    "@pastweb/tools": "^2.9.1",
     "@reduxjs/toolkit": "^2.12.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
@@ -88,7 +88,7 @@
     "react-redux": "^9.3.0",
     "redux": "^5.0.1",
     "rollup-plugin-preserve-directives": "^0.4.0",
-    "tsdown": "^0.22.0",
+    "tsdown": "^0.23.7",
     "typescript": "^6.0.3",
     "unrun": "^0.3.0",
     "vite": "^8.0.11",
